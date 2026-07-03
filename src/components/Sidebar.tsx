@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 import { buildEmailFromRequests, generateRequests } from '../requests';
 import type { FormValues } from '../types';
 import { ClipboardIcon } from './Icons';
@@ -9,16 +9,18 @@ async function copyText(text: string) {
 
 type SidebarProps = {
   values: FormValues;
+  onNavigateToField?: (scrollTarget: string) => void;
 };
 
-export function Sidebar({ values }: SidebarProps) {
+export function Sidebar({ values, onNavigateToField }: SidebarProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [allCopied, setAllCopied] = useState(false);
 
   const groups = useMemo(() => generateRequests(values), [values]);
   const total = groups.reduce((sum, group) => sum + group.items.length, 0);
 
-  const handleCopyItem = async (id: string, text: string) => {
+  const handleCopyItem = async (id: string, text: string, event: MouseEvent) => {
+    event.stopPropagation();
     await copyText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
@@ -39,6 +41,9 @@ export function Sidebar({ values }: SidebarProps) {
             <span>Что запросить у клиента</span>
           </div>
           <div className="sidebar-count">{total} пунктов</div>
+          {total > 0 && onNavigateToField && (
+            <p className="sidebar-hint">Нажмите на пункт — перейти к полю в форме</p>
+          )}
         </header>
 
         <div className="sidebar-scroll">
@@ -50,16 +55,31 @@ export function Sidebar({ values }: SidebarProps) {
             ) : (
               groups.map((group) => (
                 <div key={group.id} className="sidebar-group">
-                  <div className="sidebar-group-title">{group.title}</div>
+                  <div className="sidebar-group-title">
+                    {group.title}
+                    <span className="sidebar-group-count">{group.items.length}</span>
+                  </div>
                   <div className="sidebar-list">
                     {group.items.map((item) => (
-                      <div key={item.id} className="sidebar-item">
+                      <div
+                        key={item.id}
+                        className={`sidebar-item ${item.scrollTarget ? 'sidebar-item--clickable' : ''}`}
+                        onClick={() => item.scrollTarget && onNavigateToField?.(item.scrollTarget)}
+                        onKeyDown={(e) => {
+                          if (item.scrollTarget && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            onNavigateToField?.(item.scrollTarget);
+                          }
+                        }}
+                        role={item.scrollTarget ? 'button' : undefined}
+                        tabIndex={item.scrollTarget ? 0 : undefined}
+                      >
                         <p className="sidebar-item-text">{item.text}</p>
                         <button
                           type="button"
                           className="sidebar-copy-btn"
                           title="Копировать"
-                          onClick={() => handleCopyItem(item.id, item.text)}
+                          onClick={(e) => handleCopyItem(item.id, item.text, e)}
                         >
                           <ClipboardIcon />
                         </button>

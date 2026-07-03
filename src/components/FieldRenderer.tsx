@@ -1,16 +1,21 @@
 import type {
   CheckboxField as CheckboxFieldType,
   CheckboxGroupField,
+  DataWorkField,
   FormValues,
-  ModulesTableField,
+  MaterialsField,
   OutboundField,
   PillField,
+  PillWithDetailsField,
   SectionField,
+  UsageTableField,
 } from '../types';
+import { DataWorkBlock } from './DataWorkBlock';
 import { CheckboxRow } from './CheckboxRow';
-import { ModulesTable } from './ModulesTable';
+import { MaterialsBlock } from './MaterialsBlock';
 import { OutboundBlock } from './OutboundBlock';
 import { PillGroup } from './PillGroup';
+import { UsageTable } from './UsageTable';
 
 function pillValue(values: FormValues, fieldId: string, multiple?: boolean): string | string[] {
   const value = values[fieldId];
@@ -23,6 +28,7 @@ function pillValue(values: FormValues, fieldId: string, multiple?: boolean): str
 type FieldRendererProps = {
   field: SectionField;
   values: FormValues;
+  agentsAutoSet?: boolean;
   onPillChange: (fieldId: string, optionId: string, multiple?: boolean) => void;
   onCheckboxChange: (fieldId: string, checked: boolean) => void;
   onTextChange: (fieldId: string, text: string) => void;
@@ -31,15 +37,15 @@ type FieldRendererProps = {
 export function FieldRenderer({
   field,
   values,
+  agentsAutoSet,
   onPillChange,
   onCheckboxChange,
-  onTextChange,
 }: FieldRendererProps) {
   if (field.type === 'pills') {
     const pillField = field as PillField;
     return (
-      <div className="field-row">
-        <div className="field-label">{field.label}</div>
+      <div className="field-row field-row--compact field-anchor" id={`field-${field.id}`}>
+        <div className="field-label field-label--compact">{field.label}</div>
         <div className="field-control">
           <PillGroup
             options={pillField.options}
@@ -52,19 +58,53 @@ export function FieldRenderer({
     );
   }
 
+  if (field.type === 'pill-with-details') {
+    const detailField = field as PillWithDetailsField;
+    const value = pillValue(values, field.id) as string;
+    const showYes = value === 'yes' && detailField.detailsOnYes?.length;
+    const showNo = value === 'no' && detailField.detailsOnNo?.length;
+
+    return (
+      <div className="field-block field-anchor" id={`field-${field.id}`}>
+        <div className="field-row field-row--compact">
+          <div className="field-label field-label--compact">{field.label}</div>
+          <div className="field-control">
+            <PillGroup
+              options={detailField.options}
+              value={value}
+              onChange={(optionId) => onPillChange(field.id, optionId)}
+            />
+          </div>
+        </div>
+        {(showYes || showNo) && (
+          <div className="field-details field-details--compact">
+            {(showYes ? detailField.detailsOnYes : detailField.detailsOnNo)?.map((item) => (
+              <div key={item.id} id={`field-${item.id}`} className="field-anchor">
+                <CheckboxRow
+                  id={item.id}
+                  label={item.label}
+                  compact
+                  checked={values[item.id] === true}
+                  onChange={(checked) => onCheckboxChange(item.id, checked)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (field.type === 'checkbox') {
     const checkboxField = field as CheckboxFieldType;
     return (
-      <div className="field-row">
-        <div className="field-label">{field.label}</div>
-        <div className="field-control">
-          <CheckboxRow
-            id={field.id}
-            label={checkboxField.checkboxLabel}
-            checked={values[field.id] === true}
-            onChange={(checked) => onCheckboxChange(field.id, checked)}
-          />
-        </div>
+      <div className="field-row field-row--checkbox-only field-anchor" id={`field-${field.id}`}>
+        <CheckboxRow
+          id={field.id}
+          label={checkboxField.checkboxLabel}
+          checked={values[field.id] === true}
+          onChange={(checked) => onCheckboxChange(field.id, checked)}
+        />
       </div>
     );
   }
@@ -72,8 +112,8 @@ export function FieldRenderer({
   if (field.type === 'checkbox-group') {
     const groupField = field as CheckboxGroupField;
     return (
-      <div className="field-row field-row--faq">
-        <div className="field-label">{field.label}</div>
+      <div className="field-row field-row--faq field-anchor" id={`field-${field.id}`}>
+        <div className="field-label field-label--compact">{field.label}</div>
         <div className="field-control field-control--faq">
           {groupField.items.map((item) => (
             <CheckboxRow
@@ -89,21 +129,48 @@ export function FieldRenderer({
     );
   }
 
-  if (field.type === 'modules-table') {
-    const tableField = field as ModulesTableField;
+  if (field.type === 'materials') {
+    const materialsField = field as MaterialsField;
     return (
-      <ModulesTable
-        rows={tableField.rows}
+      <MaterialsBlock
+        items={materialsField.items}
         values={values}
         onPillChange={(fieldId, optionId) => onPillChange(fieldId, optionId)}
         onCheckboxChange={onCheckboxChange}
-        onTextChange={onTextChange}
       />
     );
   }
 
-  const outboundField = field as OutboundField;
-  if (outboundField.type === 'outbound') {
+  if (field.type === 'data-work') {
+    const dataField = field as DataWorkField;
+    return (
+      <DataWorkBlock
+        label={dataField.label}
+        subItems={dataField.subItems}
+        outboundCheckbox={dataField.outboundCheckbox}
+        values={values}
+        onPillChange={onPillChange}
+        onCheckboxChange={onCheckboxChange}
+      />
+    );
+  }
+
+  if (field.type === 'usage-table') {
+    const tableField = field as UsageTableField;
+    return (
+      <UsageTable
+        rows={tableField.rows}
+        groups={tableField.groups}
+        keyPrefix={tableField.keyPrefix}
+        values={values}
+        agentsAutoSet={agentsAutoSet}
+        onPillChange={onPillChange}
+        onCheckboxChange={onCheckboxChange}
+      />
+    );
+  }
+
+  if (field.type === 'outbound') {
     return (
       <OutboundBlock
         values={values}

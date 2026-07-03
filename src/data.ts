@@ -1,6 +1,17 @@
-import type { ModuleRowDef, Section } from './types';
+import type { DataWorkSubItem, ExpandableRowDef, ModuleGroup, Section } from './types';
 
 const yesNoUnknown = [
+  { id: 'yes', label: 'Да' },
+  { id: 'no', label: 'Нет' },
+  { id: 'unknown', label: 'Неизвестно' },
+];
+
+const yesNo = [
+  { id: 'yes', label: 'Да' },
+  { id: 'no', label: 'Нет' },
+];
+
+const existsOptions = [
   { id: 'yes', label: 'Да' },
   { id: 'no', label: 'Нет' },
   { id: 'unknown', label: 'Неизвестно' },
@@ -12,22 +23,98 @@ const realisticOptions = [
   { id: 'unknown', label: 'Неизвестно' },
 ];
 
-const statedOptions = [
-  { id: 'stated', label: 'Указано' },
-  { id: 'missing', label: 'Нет данных' },
+export const moduleGroups: ModuleGroup[] = [
+  {
+    title: 'Контактные данные',
+    rowIds: ['fio', 'region', 'city', 'address', 'phone', 'email'],
+  },
+  { title: 'Время и дата', rowIds: ['time'] },
+  {
+    title: 'Заказ и сценарий',
+    rowIds: ['product', 'order', 'survey', 'rating', 'agents'],
+  },
 ];
 
-export const moduleRows: ModuleRowDef[] = [
-  { id: 'fio', label: 'ФИО' },
-  { id: 'region', label: 'Регион' },
-  { id: 'city', label: 'Город' },
-  { id: 'address', label: 'Адрес' },
-  { id: 'phone', label: 'Телефон' },
-  { id: 'email', label: 'E-mail' },
-  { id: 'time', label: 'Время / Интервал', hasTimeExtras: true },
-  { id: 'date', label: 'Дата' },
-  { id: 'product', label: 'Услуга / Товар', hasExamples: true },
-  { id: 'order', label: 'Номер заказа', hasExamples: true },
+export const moduleRows: ExpandableRowDef[] = [
+  { id: 'fio', label: 'ФИО', standardDetails: true },
+  { id: 'region', label: 'Регион', standardDetails: true },
+  { id: 'city', label: 'Город', standardDetails: true },
+  { id: 'address', label: 'Адрес', standardDetails: true },
+  { id: 'phone', label: 'Телефон', standardDetails: true },
+  { id: 'email', label: 'E-mail', standardDetails: true },
+  {
+    id: 'time',
+    label: 'Время / Интервал / Дата',
+    standardDetails: true,
+    hasSlotsFlow: true,
+  },
+  {
+    id: 'product',
+    label: 'Услуга / Товар',
+    standardDetails: true,
+    examplesCheckbox: 'Примеры данных указаны',
+  },
+  {
+    id: 'order',
+    label: 'Номер заказа / накладной / договора',
+    standardDetails: true,
+    examplesCheckbox: 'Примеры данных указаны',
+  },
+  {
+    id: 'survey',
+    label: 'Анкета',
+    durationCheckbox: 'Ожидаемая длительность диалога указана',
+  },
+  { id: 'rating', label: 'Оценка', yesCheckbox: 'Критерии оценок ясны' },
+  { id: 'agents', label: 'Агенты', noDetailsOnYes: true },
+];
+
+export const logicRows: ExpandableRowDef[] = [
+  {
+    id: 'faq',
+    label: 'FAQ / Возражения',
+    yesCheckboxes: [
+      { id: 'scripts', label: 'Есть скрипты/материалы/готовые отработки' },
+      { id: 'deviations', label: 'Возможность отклонения от формулировок указана' },
+    ],
+  },
+  {
+    id: 'topics',
+    label: 'Специфичные тематики',
+    yesNoOnly: true,
+    yesCheckbox: 'Есть звонки/транскрибация',
+  },
+];
+
+export const dataWorkSubItems: DataWorkSubItem[] = [
+  {
+    id: 'dataBefore',
+    label: 'Данные ДО звонка',
+    yesCheckbox: 'Нужна предобработка',
+  },
+  {
+    id: 'dataAfter',
+    label: 'Передача данных ПОСЛЕ звонка',
+    yesPills: {
+      label: 'Способ передачи',
+      multiple: true,
+      options: [
+        { id: 'api', label: 'АПИ' },
+        { id: 'textWhisper', label: 'Текстошёпот' },
+        { id: 'audioWhisper', label: 'Аудиошёпот' },
+      ],
+    },
+  },
+  {
+    id: 'dataDuring',
+    label: 'Данные ВО ВРЕМЯ звонка',
+    yesCheckbox: 'Все данные есть',
+  },
+];
+
+export const sectionLayoutPairs: [string, string][] = [
+  ['intro', 'metrics'],
+  ['materials', 'voice'],
 ];
 
 export const sections: Section[] = [
@@ -47,21 +134,47 @@ export const sections: Section[] = [
       },
       {
         id: 'automationGoal',
-        label: 'Общая цель автоматизации',
-        type: 'pills',
-        options: yesNoUnknown,
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Общая цель автоматизации',
+      },
+      {
+        id: 'automationBoundaries',
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Понятные границы автоматизации',
       },
       {
         id: 'lprDemo',
         label: 'ЛПР слушал демо?',
-        type: 'pills',
+        type: 'pill-with-details',
         options: yesNoUnknown,
+        requestOnUnknownOnly: true,
+        detailsOnYes: [
+          { id: 'lprFeedbackVoice', label: 'Есть ОС по озвучке' },
+          { id: 'lprFeedbackLogic', label: 'Есть ОС по логике' },
+        ],
       },
       {
         id: 'robotsExperience',
         label: 'Клиент работал с роботами?',
-        type: 'pills',
+        type: 'pill-with-details',
         options: yesNoUnknown,
+        requestOnUnknownOnly: true,
+        detailsOnYes: [
+          { id: 'robotsFeedback', label: 'Есть ОС: что нравилось/не нравилось' },
+          { id: 'robotsProblems', label: 'Проблемы текущего робота описаны' },
+        ],
+        detailsOnNo: [
+          { id: 'robotsConcerns', label: 'Переживания по поводу робота описаны' },
+        ],
+      },
+      {
+        id: 'workedWithClient',
+        label: 'Работали с этим клиентом?',
+        type: 'pill-with-details',
+        options: yesNoUnknown,
+        detailsOnYes: [{ id: 'clientPortrait', label: 'Портрет клиента' }],
       },
     ],
   },
@@ -77,30 +190,10 @@ export const sections: Section[] = [
     number: 2,
     title: 'Метрики и критерии',
     fields: [
-      {
-        id: 'desiredKpi',
-        label: 'Желаемые KPI',
-        type: 'pills',
-        options: realisticOptions,
-      },
-      {
-        id: 'eeKpi',
-        label: 'KPI для ЭЭ',
-        type: 'pills',
-        options: realisticOptions,
-      },
-      {
-        id: 'pilotCriteria',
-        label: 'Критерии пилота',
-        type: 'pills',
-        options: realisticOptions,
-      },
-      {
-        id: 'uatCriteria',
-        label: 'Критерии UAT',
-        type: 'pills',
-        options: realisticOptions,
-      },
+      { id: 'desiredKpi', label: 'Желаемые KPI', type: 'pills', options: realisticOptions },
+      { id: 'eeKpi', label: 'KPI для ЭЭ', type: 'pills', options: realisticOptions },
+      { id: 'pilotCriteria', label: 'Критерии пилота', type: 'pills', options: realisticOptions },
+      { id: 'uatCriteria', label: 'Критерии UAT', type: 'pills', options: realisticOptions },
     ],
   },
   {
@@ -109,22 +202,22 @@ export const sections: Section[] = [
     title: 'Материалы',
     fields: [
       {
-        id: 'hasScheme',
-        label: 'Схема',
-        type: 'checkbox',
-        checkboxLabel: 'Есть схема',
-      },
-      {
-        id: 'hasScript',
-        label: 'Скрипт',
-        type: 'checkbox',
-        checkboxLabel: 'Есть скрипт',
-      },
-      {
-        id: 'hasRecordings',
-        label: 'Записи звонков',
-        type: 'checkbox',
-        checkboxLabel: 'Есть записи / транскрибации звонков',
+        id: 'materialsBlock',
+        label: '',
+        type: 'materials',
+        items: [
+          {
+            id: 'hasScheme',
+            label: 'Схема',
+            deviationCheckbox: 'Возможность отклонения от схемы указана',
+          },
+          {
+            id: 'hasScript',
+            label: 'Скрипт',
+            deviationCheckbox: 'Возможность отклонения от скрипта указана',
+          },
+          { id: 'hasRecordings', label: 'Записи звонков' },
+        ],
       },
     ],
   },
@@ -136,14 +229,27 @@ export const sections: Section[] = [
       {
         id: 'voiceHumanity',
         label: 'Человечность озвучки',
-        type: 'pills',
-        options: statedOptions,
+        type: 'pill-with-details',
+        options: yesNoUnknown,
+        detailsOnYes: [
+          { id: 'voiceHumanityConcept', label: 'Понятие «человечности» раскрыто' },
+          {
+            id: 'voiceHumanitySounds',
+            label: 'Возможность использования междометий, фоновых звуков указана',
+          },
+        ],
       },
       {
         id: 'pauseRequirements',
         label: 'Требования к паузам',
-        type: 'pills',
-        options: statedOptions,
+        type: 'pill-with-details',
+        options: yesNoUnknown,
+        detailsOnYes: [
+          {
+            id: 'pauseSounds',
+            label: 'Возможность использования междометий, фоновых звуков указана',
+          },
+        ],
       },
     ],
   },
@@ -155,8 +261,10 @@ export const sections: Section[] = [
       {
         id: 'modulesTable',
         label: '',
-        type: 'modules-table',
+        type: 'usage-table',
+        keyPrefix: 'module',
         rows: moduleRows,
+        groups: moduleGroups,
       },
     ],
   },
@@ -166,46 +274,18 @@ export const sections: Section[] = [
     title: 'Логика, FAQ, интеграции',
     fields: [
       {
-        id: 'faq',
-        label: 'FAQ / Возражения',
-        type: 'checkbox-group',
-        items: [
-          { id: 'faqScripts', label: 'Есть скрипты/материалы/готовые отработки' },
-          { id: 'faqDeviations', label: 'Возможны отклонения от формулировок' },
-        ],
+        id: 'logicTable',
+        label: '',
+        type: 'usage-table',
+        keyPrefix: 'logic',
+        rows: logicRows,
       },
       {
-        id: 'topics',
-        label: 'Специфичные тематики',
-        type: 'pills',
-        multiple: true,
-        options: [
-          { id: 'calls', label: 'Звонки' },
-          { id: 'transcription', label: 'Транскрибация' },
-        ],
-      },
-      {
-        id: 'dataBefore',
-        label: 'Данные ДО звонка',
-        type: 'checkbox',
-        checkboxLabel: 'Нужна предобработка',
-      },
-      {
-        id: 'dataAfter',
-        label: 'Передача данных ПОСЛЕ звонка',
-        type: 'pills',
-        multiple: true,
-        options: [
-          { id: 'api', label: 'АПИ' },
-          { id: 'textWhisper', label: 'Текстошёпот' },
-          { id: 'audioWhisper', label: 'Аудиошёпот' },
-        ],
-      },
-      {
-        id: 'dataDuring',
-        label: 'Данные ВО ВРЕМЯ звонка',
-        type: 'checkbox',
-        checkboxLabel: 'Все данные есть',
+        id: 'dataWork',
+        label: 'Работа с данными',
+        type: 'data-work',
+        subItems: dataWorkSubItems,
+        outboundCheckbox: 'Информация передаваемая с номером телефона указана',
       },
     ],
   },
@@ -220,7 +300,6 @@ export const sections: Section[] = [
         type: 'pills',
         multiple: true,
         options: [
-          { id: 'table', label: 'Таблица' },
           { id: 'tiles', label: 'Плитки' },
           { id: 'filters', label: 'Фильтры' },
           { id: 'customColumns', label: 'Кастомные столбцы' },
@@ -230,16 +309,20 @@ export const sections: Section[] = [
   },
 ];
 
-export const moduleUsageOptions = [
-  { id: 'yes', label: 'Да' },
-  { id: 'no', label: 'Нет' },
-  { id: 'unknown', label: 'Неизвестно' },
-];
+export const moduleUsageOptions = yesNoUnknown;
+export const logicUsageOptions = yesNoUnknown;
+export const yesNoOptions = yesNo;
+export const existsOptionsExport = existsOptions;
 
 export const moduleModeOptions = [
   { id: 'accept', label: 'Принимаем' },
   { id: 'verify', label: 'Верифицируем' },
   { id: 'send', label: 'Отправляем' },
+];
+
+export const callbackTypeOptions = [
+  { id: 'standard', label: 'Стандартные перезвоны' },
+  { id: 'custom', label: 'Кастомная логика' },
 ];
 
 export const launchOptions = [

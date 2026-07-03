@@ -14,6 +14,15 @@ export type PillField = FieldBase & {
   multiple?: boolean;
 };
 
+export type PillWithDetailsField = FieldBase & {
+  type: 'pill-with-details';
+  options: PillOption[];
+  detailsOnYes?: { id: string; label: string }[];
+  detailsOnNo?: { id: string; label: string }[];
+  /** В список уточнений попадает только «Неизвестно», ответ «Нет» — ок */
+  requestOnUnknownOnly?: boolean;
+};
+
 export type CheckboxField = FieldBase & {
   type: 'checkbox';
   checkboxLabel: string;
@@ -24,16 +33,58 @@ export type CheckboxGroupField = FieldBase & {
   items: { id: string; label: string }[];
 };
 
-export type ModuleRowDef = {
+export type MaterialItemDef = {
   id: string;
   label: string;
-  hasTimeExtras?: boolean;
-  hasExamples?: boolean;
+  deviationCheckbox?: string;
 };
 
-export type ModulesTableField = FieldBase & {
-  type: 'modules-table';
-  rows: ModuleRowDef[];
+export type MaterialsField = FieldBase & {
+  type: 'materials';
+  items: MaterialItemDef[];
+};
+
+export type DataWorkSubItem = {
+  id: string;
+  label: string;
+  yesCheckbox?: string;
+  yesPills?: {
+    label: string;
+    options: PillOption[];
+    multiple?: boolean;
+  };
+};
+
+export type DataWorkField = FieldBase & {
+  type: 'data-work';
+  subItems: DataWorkSubItem[];
+  outboundCheckbox?: string;
+};
+
+export type ExpandableRowDef = {
+  id: string;
+  label: string;
+  standardDetails?: boolean;
+  hasSlotsFlow?: boolean;
+  examplesCheckbox?: string;
+  durationCheckbox?: string;
+  yesCheckbox?: string;
+  yesCheckboxes?: { id: string; label: string }[];
+  yesPills?: {
+    label: string;
+    options: PillOption[];
+    multiple?: boolean;
+  };
+  yesNoOnly?: boolean;
+  /** Без деталей при «Да» — только выбор использования */
+  noDetailsOnYes?: boolean;
+};
+
+export type UsageTableField = FieldBase & {
+  type: 'usage-table';
+  keyPrefix: 'module' | 'logic';
+  rows: ExpandableRowDef[];
+  groups?: ModuleGroup[];
 };
 
 export type OutboundField = FieldBase & {
@@ -42,9 +93,12 @@ export type OutboundField = FieldBase & {
 
 export type SectionField =
   | PillField
+  | PillWithDetailsField
   | CheckboxField
   | CheckboxGroupField
-  | ModulesTableField
+  | MaterialsField
+  | DataWorkField
+  | UsageTableField
   | OutboundField;
 
 export type Section = {
@@ -60,6 +114,12 @@ export type SectionStatus = 'empty' | 'partial' | 'complete';
 export type RequestItem = {
   id: string;
   text: string;
+  scrollTarget?: string;
+};
+
+export type ModuleGroup = {
+  title: string;
+  rowIds: string[];
 };
 
 export type RequestGroup = {

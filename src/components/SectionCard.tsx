@@ -5,6 +5,8 @@ import { FieldRenderer } from './FieldRenderer';
 type SectionCardProps = {
   section: Section;
   values: FormValues;
+  agentsAutoSet?: boolean;
+  inRow?: boolean;
   onPillChange: (fieldId: string, optionId: string, multiple?: boolean) => void;
   onCheckboxChange: (fieldId: string, checked: boolean) => void;
   onTextChange: (fieldId: string, text: string) => void;
@@ -13,6 +15,8 @@ type SectionCardProps = {
 export function SectionCard({
   section,
   values,
+  agentsAutoSet,
+  inRow,
   onPillChange,
   onCheckboxChange,
   onTextChange,
@@ -21,7 +25,10 @@ export function SectionCard({
   const displayNumber = section.number > 0 ? section.number : '⚡';
 
   return (
-    <section className="section-card" id={`section-${section.id}`}>
+    <section
+      className={`section-card ${inRow ? 'section-card--in-row' : ''}`}
+      id={`section-${section.id}`}
+    >
       <header className="section-header">
         <div className="section-number">{displayNumber}</div>
         <h2 className="section-title">{section.title}</h2>
@@ -41,6 +48,7 @@ export function SectionCard({
             key={field.id}
             field={field}
             values={values}
+            agentsAutoSet={agentsAutoSet}
             onPillChange={onPillChange}
             onCheckboxChange={onCheckboxChange}
             onTextChange={onTextChange}

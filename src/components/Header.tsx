@@ -20,21 +20,31 @@ export function Header({ values, requestCount, onReset, onExport, exportCopied }
         <div className="app-progress">
           <div className="app-progress-label">
             <span>
-              {filled}/{total} блоков заполнено
+              Заполнено: {filled}/{total}
+              {requestCount > 0 && (
+                <span className="app-progress-requests"> · уточнить: {requestCount}</span>
+              )}
             </span>
             <span className="app-progress-percent">{percent}%</span>
           </div>
-          <div className="app-progress-bar" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+          <div
+            className="app-progress-bar"
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Заполнено ${percent} процентов`}
+          >
             <div className="app-progress-fill" style={{ width: `${percent}%` }} />
           </div>
         </div>
       </div>
       <div className="app-header-actions">
-        <button type="button" className="btn btn--ghost" onClick={onReset}>
+        <button type="button" className="btn btn--ghost btn--danger" onClick={onReset}>
           Сбросить
         </button>
         <button type="button" className="btn btn--primary" onClick={onExport}>
-          {exportCopied ? 'Скопировано!' : `Экспорт списка запросов (${requestCount})`}
+          {exportCopied ? 'Скопировано!' : `Экспорт (${requestCount})`}
         </button>
       </div>
     </header>
