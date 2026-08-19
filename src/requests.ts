@@ -29,6 +29,18 @@ function push(
   }
 }
 
+function moduleWorkForm(row: ExpandableRowDef): string {
+  return row.workWithLabel ?? row.label.toLowerCase();
+}
+
+function moduleUsageQuestion(row: ExpandableRowDef): string {
+  return `Должен ли робот работать с ${moduleWorkForm(row)}? Если да, то что именно робот должен делать?`;
+}
+
+function moduleModeQuestion(row: ExpandableRowDef): string {
+  return `Что именно робот должен делать с ${moduleWorkForm(row)}?`;
+}
+
 function collectRowRequests(
   groups: Map<string, RequestGroup>,
   category: string,
@@ -40,13 +52,17 @@ function collectRowRequests(
     const usedKey = rowKey(prefix, row.id, 'used');
     const used = getRowUsed(values, prefix, row.id);
     if (!used || used === 'unknown') {
-      push(
-        groups,
-        category,
-        `${prefix}-${row.id}`,
-        `Уточнить: используется ли «${row.label}»?`,
-        usedKey,
-      );
+      let text: string;
+      if (prefix === 'module') {
+        text = moduleUsageQuestion(row);
+      } else if (row.id === 'faq') {
+        text = 'Нужна ли в сценарии отработка FAQ и возражений?';
+      } else if (row.id === 'topics') {
+        text = 'Есть ли специфичные тематики, которые нужно учесть в сценарии?';
+      } else {
+        text = moduleUsageQuestion(row);
+      }
+      push(groups, category, `${prefix}-${row.id}`, text, usedKey);
       continue;
     }
     if (used === 'no') continue;
@@ -55,13 +71,8 @@ function collectRowRequests(
       const modeKey = rowKey(prefix, row.id, 'mode');
       const mode = values[modeKey];
       if (!Array.isArray(mode) || mode.length === 0) {
-        push(
-          groups,
-          category,
-          `${prefix}-${row.id}-mode`,
-          `Уточнить: режим работы «${row.label}» (принимаем / верифицируем / отправляем)`,
-          modeKey,
-        );
+        const text = prefix === 'module' ? moduleModeQuestion(row) : moduleModeQuestion(row);
+        push(groups, category, `${prefix}-${row.id}-mode`, text, modeKey);
       }
     }
 
@@ -70,7 +81,7 @@ function collectRowRequests(
         groups,
         category,
         `${prefix}-${row.id}-examples`,
-        `Запросить: примеры данных для поля «${row.label}»`,
+        `Просим примеры данных для поля «${row.label}».`,
         rowKey(prefix, row.id, 'examples'),
       );
     }
@@ -80,17 +91,37 @@ function collectRowRequests(
         groups,
         category,
         `${prefix}-${row.id}-duration`,
-        `Уточнить: ${row.durationCheckbox.toLowerCase()} («${row.label}»)`,
+        'Какая ожидаемая длительность диалога?',
         rowKey(prefix, row.id, 'flag'),
       );
     }
 
-    if (row.yesCheckbox && values[rowKey(prefix, row.id, 'flag')] !== true) {
+    if (row.id === 'rating' && row.yesCheckbox && values[rowKey(prefix, row.id, 'flag')] !== true) {
       push(
         groups,
         category,
         `${prefix}-${row.id}-flag`,
-        `Уточнить: ${row.yesCheckbox.toLowerCase()} («${row.label}»)`,
+        'Есть ли чёткие критерии, по которым робот соотносит оценку от абонента с бальной системой?',
+        rowKey(prefix, row.id, 'flag'),
+      );
+    } else if (
+      row.id === 'agents' &&
+      used === 'yes' &&
+      values[rowKey(prefix, row.id, 'flag')] !== true
+    ) {
+      push(
+        groups,
+        'Внутренние',
+        `${prefix}-${row.id}-ee`,
+        'Можем ли использовать агентов в сценарии? Выгодно ли это нам?',
+        rowKey(prefix, row.id, 'flag'),
+      );
+    } else if (row.yesCheckbox && row.id !== 'rating' && row.id !== 'agents' && values[rowKey(prefix, row.id, 'flag')] !== true) {
+      push(
+        groups,
+        category,
+        `${prefix}-${row.id}-flag`,
+        row.yesCheckbox.endsWith('?') ? row.yesCheckbox : `${row.yesCheckbox}?`,
         rowKey(prefix, row.id, 'flag'),
       );
     }
@@ -98,11 +129,19 @@ function collectRowRequests(
     if (row.yesCheckboxes) {
       for (const item of row.yesCheckboxes) {
         if (values[rowKey(prefix, row.id, item.id)] !== true) {
+          let text = item.label.endsWith('?') ? item.label : `${item.label}?`;
+          if (row.id === 'faq' && item.id === 'scripts') {
+            text =
+              'Есть ли скрипты, материалы или готовые отработки для FAQ и возражений?';
+          }
+          if (row.id === 'faq' && item.id === 'deviations') {
+            text = 'Допустимы ли отклонения от формулировок в FAQ и возражениях?';
+          }
           push(
             groups,
             category,
             `${prefix}-${row.id}-${item.id}`,
-            `Уточнить: ${item.label.toLowerCase()} («${row.label}»)`,
+            text,
             rowKey(prefix, row.id, item.id),
           );
         }
@@ -117,7 +156,7 @@ function collectRowRequests(
           groups,
           category,
           `${prefix}-${row.id}-pills`,
-          `Уточнить: способ передачи данных после звонка (АПИ / шёпот)`,
+          'Способ передачи данных, зафиксированных в звонке: запись в таблицу с выгрузкой из ЛК в Excel или передача по API?',
           pillsKey,
         );
       }
@@ -127,7 +166,13 @@ function collectRowRequests(
       const slotsKey = rowKey(prefix, row.id, 'slots');
       const slots = values[slotsKey];
       if (!slots || slots === 'unknown') {
-        push(groups, category, `${prefix}-${row.id}-slots`, `Уточнить: используются ли слоты?`, slotsKey);
+        push(
+          groups,
+          category,
+          `${prefix}-${row.id}-slots`,
+          'Будут ли использоваться слоты (выбор времени/интервала)?',
+          slotsKey,
+        );
       } else if (slots === 'yes') {
         const useAgentKey = rowKey(prefix, row.id, 'useAgent');
         const useAgent = values[useAgentKey];
@@ -136,7 +181,7 @@ function collectRowRequests(
             groups,
             category,
             `${prefix}-${row.id}-agent`,
-            `Уточнить: будет ли использоваться агент?`,
+            'Допустимо ли использование агента для подбора слотов?',
             useAgentKey,
           );
         }
@@ -149,20 +194,26 @@ function collectDataWorkRequests(groups: Map<string, RequestGroup>, values: Form
   const usedKey = 'logic_dataWork_used';
   const used = values[usedKey];
   if (!used || used === 'unknown') {
-    push(groups, 'Логика', 'dataWork', 'Уточнить: используется ли работа с данными?', usedKey);
+    push(
+      groups,
+      'Логика',
+      'dataWork',
+      'Будет ли робот работать с данными до, во время и после звонка?',
+      usedKey,
+    );
     return;
   }
   if (used === 'no') return;
 
   for (const item of dataWorkSubItems) {
     if (item.yesCheckbox && values[logicKey(item.id, 'flag')] !== true) {
-      push(
-        groups,
-        'Логика',
-        `dataWork-${item.id}-flag`,
-        `Уточнить: ${item.yesCheckbox.toLowerCase()} («${item.label}»)`,
-        logicKey(item.id, 'flag'),
-      );
+      const text =
+        item.id === 'dataBefore'
+          ? 'Нужна ли предобработка данных до звонка? Если да — какая?'
+          : item.id === 'dataDuring'
+            ? 'Все ли данные, необходимые во время звонка, будут доступны роботу?'
+            : `${item.yesCheckbox}?`;
+      push(groups, 'Логика', `dataWork-${item.id}-flag`, text, logicKey(item.id, 'flag'));
     }
     if (item.yesPills) {
       const pillsKey = logicKey(item.id, 'pills');
@@ -172,7 +223,7 @@ function collectDataWorkRequests(groups: Map<string, RequestGroup>, values: Form
           groups,
           'Логика',
           `dataWork-${item.id}-pills`,
-          `Уточнить: способ передачи данных после звонка (АПИ / шёпот)`,
+          'Способ передачи данных, зафиксированных в звонке: запись в таблицу с выгрузкой из ЛК в Excel или передача по API?',
           pillsKey,
         );
       }
@@ -184,7 +235,7 @@ function collectDataWorkRequests(groups: Map<string, RequestGroup>, values: Form
       groups,
       'Логика',
       'dataWork-phoneInfo',
-      'Уточнить: информация передаваемая с номером телефона',
+      'Будет ли робот получать информацию об абоненте вместе с номером телефона? Какую именно?',
       'logic_dataWork_phoneInfo',
     );
   }
@@ -194,29 +245,53 @@ export function generateRequests(values: FormValues): RequestGroup[] {
   const groups = new Map<string, RequestGroup>();
 
   if (needsRequestForPill(values.projectType)) {
-    push(groups, 'Вводные', 'projectType', 'Уточнить: тип проекта — входящий или исходящий?', 'projectType');
+    push(
+      groups,
+      'Вводные',
+      'projectType',
+      'Проект планируется входящим (принимаем звонки) или исходящим (обзвон)?',
+      'projectType',
+    );
   }
   if (values.automationGoal !== true) {
-    push(groups, 'Вводные', 'automationGoal', 'Запросить: общая цель автоматизации', 'automationGoal');
+    push(
+      groups,
+      'Вводные',
+      'automationGoal',
+      'Какова общая цель автоматизации? Что робот должен сделать по итогам звонка?',
+      'automationGoal',
+    );
   }
   if (values.automationBoundaries !== true) {
     push(
       groups,
       'Вводные',
       'automationBoundaries',
-      'Уточнить: понятные границы автоматизации',
+      'Какие границы у автоматизации: что робот точно делает, а что — нет?',
       'automationBoundaries',
     );
   }
 
   if (needsRequestForUnknownOnly(values.lprDemo)) {
-    push(groups, 'Вводные', 'lprDemo', 'Уточнить: слушал ли ЛПР демо?', 'lprDemo');
+    push(groups, 'Вводные', 'lprDemo', 'Слушал ли ЛПР демо / примеры звонков?', 'lprDemo');
   } else if (values.lprDemo === 'yes') {
     if (values.lprFeedbackVoice !== true) {
-      push(groups, 'Вводные', 'lprFeedbackVoice', 'Запросить: обратную связь ЛПР по озвучке', 'lprFeedbackVoice');
+      push(
+        groups,
+        'Вводные',
+        'lprFeedbackVoice',
+        'Есть ли обратная связь ЛПР по озвучке демосценария: что понравилось, что нет?',
+        'lprFeedbackVoice',
+      );
     }
     if (values.lprFeedbackLogic !== true) {
-      push(groups, 'Вводные', 'lprFeedbackLogic', 'Запросить: обратную связь ЛПР по логике', 'lprFeedbackLogic');
+      push(
+        groups,
+        'Вводные',
+        'lprFeedbackLogic',
+        'Есть ли обратная связь ЛПР по логике демосценария?',
+        'lprFeedbackLogic',
+      );
     }
   }
 
@@ -225,7 +300,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
       groups,
       'Вводные',
       'robotsExperience',
-      'Уточнить: работал ли клиент с роботами ранее?',
+      'Работал ли клиент с голосовыми роботами ранее?',
       'robotsExperience',
     );
   } else if (values.robotsExperience === 'yes') {
@@ -234,19 +309,25 @@ export function generateRequests(values: FormValues): RequestGroup[] {
         groups,
         'Вводные',
         'robotsFeedback',
-        'Запросить: ОС клиента — что нравилось/не нравилось в роботах',
+        'ОС клиента: что нравилось и не нравилось в предыдущем роботе?',
         'robotsFeedback',
       );
     }
     if (values.robotsProblems !== true) {
-      push(groups, 'Вводные', 'robotsProblems', 'Уточнить: проблемы текущего робота', 'robotsProblems');
+      push(
+        groups,
+        'Вводные',
+        'robotsProblems',
+        'С какими проблемами в работе робота сталкивались?',
+        'robotsProblems',
+      );
     }
   } else if (values.robotsExperience === 'no' && values.robotsConcerns !== true) {
     push(
       groups,
       'Вводные',
       'robotsConcerns',
-      'Уточнить: переживания клиента по поводу робота',
+      'Есть ли переживания или сомнения по поводу использования робота?',
       'robotsConcerns',
     );
   }
@@ -254,39 +335,53 @@ export function generateRequests(values: FormValues): RequestGroup[] {
   if (needsRequestForPill(values.workedWithClient)) {
     push(
       groups,
-      'Вводные',
+      'Внутренние',
       'workedWithClient',
-      'Уточнить: работали ли с этим клиентом ранее?',
+      'Работали ли мы с этим клиентом ранее? Есть ли особенности, которые стоит учесть?',
       'workedWithClient',
     );
   } else if (values.workedWithClient === 'yes' && values.clientPortrait !== true) {
-    push(groups, 'Вводные', 'clientPortrait', 'Запросить: портрет клиента', 'clientPortrait');
+    push(
+      groups,
+      'Внутренние',
+      'clientPortrait',
+      'Есть ли портрет клиента: насколько лоялен, что важно знать на основе прошлого опыта?',
+      'clientPortrait',
+    );
+  }
+
+  if (values.productLimitsNone !== true) {
+    push(
+      groups,
+      'Внутренние',
+      'productLimitsNone',
+      'Функционал, запрашиваемый клиентом не реализован в продукте',
+      'productLimitsNone',
+    );
   }
 
   if (isOutbound(values)) {
     const timeUsed = values.outboundTimeUsed;
     if (!timeUsed || timeUsed === 'unknown') {
-      push(groups, 'Исходящие', 'outboundTime', 'Уточнить: ограничения по времени звонков', 'outboundTimeUsed');
+      push(groups, 'Исходящие', 'outboundTime', 'Будут ли ограничения по времени звонков?', 'outboundTimeUsed');
     } else if (timeUsed === 'yes' && values.outboundTimeLogic !== true) {
       push(
         groups,
         'Исходящие',
         'outboundTimeLogic',
-        'Уточнить: логику ограничения по времени звонков',
+        'Какая логика ограничений по времени звонков (окна, часовые пояса, праздники)?',
         'outboundTimeLogic',
       );
     }
 
     const callbackUsed = values.outboundCallbackUsed;
-    if (!callbackUsed || callbackUsed === 'unknown') {
-      push(groups, 'Исходящие', 'outboundCallback', 'Уточнить: логику перезвонов', 'outboundCallbackUsed');
-    } else if (callbackUsed === 'yes' && !values.outboundCallbackType) {
+    if (!callbackUsed || callbackUsed === 'unknown' || (callbackUsed === 'yes' && !values.outboundCallbackType)) {
       push(
         groups,
         'Исходящие',
-        'outboundCallbackType',
-        'Уточнить: тип логики перезвонов (стандартные / кастомная)',
-        'outboundCallbackType',
+        'outboundCallback',
+        'Какая ожидаемая логика перезвонов?',
+        callbackUsed === 'yes' ? 'outboundCallbackType' : 'outboundCallbackUsed',
       );
     }
 
@@ -295,17 +390,29 @@ export function generateRequests(values: FormValues): RequestGroup[] {
         groups,
         'Исходящие',
         'outboundLaunch',
-        'Уточнить: способ запуска — по таблице или по API',
+        'Как будем запускать звонки: по таблице или по API?',
         'outboundLaunch',
       );
     }
   }
 
   const metricFields = [
-    { id: 'desiredKpi', text: 'Уточнить у ЛПР: какие KPI считаются реалистичными?' },
-    { id: 'eeKpi', text: 'Запросить: KPI для ЭЭ (экспертной эксплуатации)' },
-    { id: 'pilotCriteria', text: 'Уточнить: критерии успешности пилота' },
-    { id: 'uatCriteria', text: 'Уточнить: критерии приёмки (UAT)' },
+    {
+      id: 'desiredKpi',
+      text: 'Какие ключевые показатели ожидаются?',
+    },
+    {
+      id: 'eeKpi',
+      text: 'Какие показатели нужны для экономической эффективности? Есть ли пожелания по цене и длительности диалога?',
+    },
+    {
+      id: 'pilotCriteria',
+      text: 'По каким критериям считаем пилот успешным?',
+    },
+    {
+      id: 'uatCriteria',
+      text: 'По каким критериям принимаем проект (UAT)?',
+    },
   ];
   for (const field of metricFields) {
     if (needsRequestForPill(values[field.id], true)) {
@@ -314,34 +421,48 @@ export function generateRequests(values: FormValues): RequestGroup[] {
   }
 
   const materialItems = [
-    { id: 'hasScheme', label: 'схема', deviationId: 'hasSchemeDeviation' },
-    { id: 'hasScript', label: 'скрипт', deviationId: 'hasScriptDeviation' },
-    { id: 'hasRecordings', label: 'записи/транскрибации звонков' },
+    { id: 'hasScheme', text: 'Просим предоставить схему сценария (блок-схему или описание ветвлений).' },
+    { id: 'hasScript', text: 'Просим предоставить скрипт диалога / документ с формулировками.' },
+    {
+      id: 'hasRecordings',
+      text: 'По возможности хотелось бы получить записи или транскрибации звонков (хотя бы 30–40 штук).',
+    },
   ];
   for (const item of materialItems) {
     const v = values[item.id];
     if (!v || v === 'unknown') {
-      push(groups, 'Материалы', item.id, `Запросить: ${item.label}`, item.id);
-    } else if (v === 'yes' && item.deviationId && values[item.deviationId] !== true) {
-      push(
-        groups,
-        'Материалы',
-        item.deviationId,
-        `Уточнить: возможность отклонения от ${item.label === 'скрипт' ? 'скрипта' : 'схемы'}`,
-        item.deviationId,
-      );
+      push(groups, 'Материалы', item.id, item.text, item.id);
     }
   }
 
+  const needsDeviation =
+    (values.hasScheme === 'yes' && values.hasSchemeDeviation !== true) ||
+    (values.hasScript === 'yes' && values.hasScriptDeviation !== true);
+  if (needsDeviation) {
+    push(
+      groups,
+      'Материалы',
+      'materialsDeviation',
+      'Допускается ли отклонение от схемы, можем ли предложить правки в скрипт?',
+      'hasSchemeDeviation',
+    );
+  }
+
   if (needsRequestForPill(values.voiceHumanity)) {
-    push(groups, 'Озвучка', 'voiceHumanity', 'Уточнить: требования к человечности озвучки', 'voiceHumanity');
+    push(
+      groups,
+      'Озвучка',
+      'voiceHumanity',
+      'Есть ли требования к «человечности» озвучки?',
+      'voiceHumanity',
+    );
   } else if (values.voiceHumanity === 'yes') {
     if (values.voiceHumanityConcept !== true) {
       push(
         groups,
         'Озвучка',
         'voiceHumanityConcept',
-        'Уточнить: понятие «человечности» озвучки',
+        'Что для вас означает «человечная» озвучка? Можете описать на примерах?',
         'voiceHumanityConcept',
       );
     }
@@ -350,37 +471,96 @@ export function generateRequests(values: FormValues): RequestGroup[] {
         groups,
         'Озвучка',
         'voiceHumanitySounds',
-        'Уточнить: возможность использования междометий и фоновых звуков',
+        'Допустимо ли использование междометий и фоновых звуков (например, «ааа…», «ммм…», шум колл-центра, звуки клавиатуры) для достижения человечности озвучки?',
         'voiceHumanitySounds',
       );
     }
   }
 
   if (needsRequestForPill(values.pauseRequirements)) {
-    push(groups, 'Озвучка', 'pauseRequirements', 'Уточнить: требования к паузам', 'pauseRequirements');
+    push(groups, 'Озвучка', 'pauseRequirements', 'Есть ли требования к паузам в диалоге?', 'pauseRequirements');
   } else if (values.pauseRequirements === 'yes' && values.pauseSounds !== true) {
     push(
       groups,
       'Озвучка',
       'pauseSounds',
-      'Уточнить: возможность использования междометий и фоновых звуков в паузах',
+      'Допустимы ли междометия и фоновые звуки в паузах?',
       'pauseSounds',
     );
   }
 
+  if (needsRequestForPill(values.interruption)) {
+    push(
+      groups,
+      'Озвучка',
+      'interruption',
+      'Должен ли робот понимать, когда его перебивают?',
+      'interruption',
+    );
+  } else if (values.interruption === 'yes' && values.interruptionFormat !== true) {
+    push(
+      groups,
+      'Озвучка',
+      'interruptionFormat',
+      'Какое поведение после перебивания ожидается?',
+      'interruptionFormat',
+    );
+  }
+
   collectRowRequests(groups, 'Данные', 'module', moduleRows, values);
+
   collectRowRequests(groups, 'Логика', 'logic', logicRows, values);
   collectDataWorkRequests(groups, values);
 
-  const analytics = values.analyticsFormat;
-  if (!Array.isArray(analytics) || analytics.length === 0) {
+  if (needsRequestForPill(values.operatorTransfer)) {
+    push(
+      groups,
+      'Логика',
+      'operatorTransfer',
+      'Нужен ли переход на оператора в сценарии?',
+      'operatorTransfer',
+    );
+  } else if (values.operatorTransfer === 'yes') {
+    const audioWhisper = values.operatorTransferAudioWhisper;
+    if (typeof audioWhisper !== 'string' || !audioWhisper) {
+      push(
+        groups,
+        'Логика',
+        'operatorTransferAudioWhisper',
+        'При переводе звонка на оператора, нужно ли передавать какую-то информацию из разговора абонента с роботом?',
+        'operatorTransferAudioWhisper',
+      );
+    } else if (audioWhisper === 'yes' && values.operatorTransferData !== true) {
+      push(
+        groups,
+        'Логика',
+        'operatorTransferData',
+        'Какие данные по звонку должны передаваться оператору?',
+        'operatorTransferData',
+      );
+    }
+  }
+
+  const analyticsNeeded = values.analyticsNeeded;
+  if (!analyticsNeeded || analyticsNeeded === 'unknown') {
     push(
       groups,
       'Аналитика',
-      'analyticsFormat',
-      'Уточнить: требования к аналитике (плитки / фильтры / кастомные столбцы)',
-      'analyticsFormat',
+      'analyticsNeeded',
+      'Какую аналитику хотели бы видеть в личном кабинете?',
+      'analyticsNeeded',
     );
+  } else if (analyticsNeeded === 'yes') {
+    const format = values.analyticsFormat;
+    if (!Array.isArray(format) || format.length === 0) {
+      push(
+        groups,
+        'Аналитика',
+        'analyticsFormat',
+        'Какой формат аналитики в личном кабинете нужен: плитки, фильтры, кастомные столбцы?',
+        'analyticsFormat',
+      );
+    }
   }
 
   const order = [
@@ -392,6 +572,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     'Данные',
     'Логика',
     'Аналитика',
+    'Внутренние',
   ];
 
   return order
@@ -399,26 +580,37 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     .filter((group): group is RequestGroup => Boolean(group));
 }
 
+const INTERNAL_GROUP_TITLE = 'ВНУТРЕННИЕ';
+
+export function isClientRequestGroup(group: RequestGroup): boolean {
+  return group.title !== INTERNAL_GROUP_TITLE;
+}
+
+export function getClientRequestGroups(groups: RequestGroup[]): RequestGroup[] {
+  return groups.filter(isClientRequestGroup);
+}
+
+export function countClientRequests(groups: RequestGroup[]): number {
+  return getClientRequestGroups(groups).reduce((sum, group) => sum + group.items.length, 0);
+}
+
 export function buildEmailFromRequests(groups: RequestGroup[]): string {
-  const lines = [
-    'Добрый день!',
-    '',
-    'Для подготовки проекта автоматизации просим уточнить и предоставить следующее:',
-    '',
-  ];
+  const clientGroups = getClientRequestGroups(groups);
+  const lines = ['Для полноценной оценки проекта нужны следующие уточнения:', ''];
 
   let index = 1;
-  for (const group of groups) {
+  for (const group of clientGroups) {
+    lines.push(group.title.charAt(0) + group.title.slice(1).toLowerCase());
     for (const item of group.items) {
       lines.push(`${index}. ${item.text}`);
       index += 1;
     }
+    lines.push('');
   }
 
-  lines.push('', 'Спасибо!');
-  return lines.join('\n');
-}
+  while (lines.length > 0 && lines[lines.length - 1] === '') {
+    lines.pop();
+  }
 
-export function buildExportList(groups: RequestGroup[]): string {
-  return groups.flatMap((g) => g.items.map((i) => i.text)).join('\n');
+  return lines.join('\n');
 }

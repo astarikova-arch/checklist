@@ -1,4 +1,5 @@
-import { dataWorkSubItems, sectionLayoutPairs, sections } from './data';
+import { dataWorkSubItems, moduleRows, sectionLayoutPairs, sections } from './data';
+import { loadFormValues } from './storage';
 import type { ExpandableRowDef, FormValues, Section, SectionField, SectionStatus } from './types';
 
 export type SectionLayoutItem = Section | Section[];
@@ -29,6 +30,18 @@ export function layoutSections(visible: Section[]): SectionLayoutItem[] {
   }
 
   return result;
+}
+
+export function getModuleDefaults(): FormValues {
+  const defaults: FormValues = {};
+  for (const row of moduleRows) {
+    defaults[rowKey('module', row.id, 'used')] = 'no';
+  }
+  return defaults;
+}
+
+export function createInitialValues(): FormValues {
+  return { ...getModuleDefaults(), ...loadFormValues() };
 }
 
 export function isOutbound(values: FormValues): boolean {
@@ -194,6 +207,25 @@ function isDataWorkComplete(values: FormValues): boolean {
   return true;
 }
 
+export function isOperatorTransferComplete(values: FormValues): boolean {
+  const used = values.operatorTransfer;
+  if (typeof used !== 'string' || !used || needsRequestForPill(used)) return false;
+  if (used !== 'yes') return true;
+
+  const audioWhisper = values.operatorTransferAudioWhisper;
+  if (typeof audioWhisper !== 'string' || !audioWhisper) return false;
+  if (audioWhisper !== 'yes') return true;
+
+  return values.operatorTransferData === true;
+}
+
+export function clearOperatorTransferDetails(values: FormValues): FormValues {
+  const next = { ...values };
+  delete next.operatorTransferAudioWhisper;
+  delete next.operatorTransferData;
+  return next;
+}
+
 function isPillFieldFilled(field: Extract<SectionField, { type: 'pills' }>, values: FormValues): boolean {
   const value = values[field.id];
   if (field.multiple) {
@@ -237,6 +269,8 @@ function countFieldBlocks(field: SectionField, values: FormValues): { filled: nu
       };
     case 'data-work':
       return { filled: isDataWorkComplete(values) ? 1 : 0, total: 1 };
+    case 'operator-transfer':
+      return { filled: isOperatorTransferComplete(values) ? 1 : 0, total: 1 };
     case 'usage-table':
       return {
         filled: field.rows.filter((row) => isRowAnsweredComplete(values, field.keyPrefix, row)).length,
@@ -251,6 +285,14 @@ function countFieldBlocks(field: SectionField, values: FormValues): { filled: nu
           (typeof values.outboundLaunch === 'string' && values.outboundLaunch ? 1 : 0),
         total: 3,
       };
+    case 'analytics': {
+      const needed = values.analyticsNeeded;
+      if (typeof needed !== 'string' || !needed) return { filled: 0, total: 1 };
+      if (needed !== 'yes') return { filled: 1, total: 1 };
+      const format = values.analyticsFormat;
+      const hasFormat = Array.isArray(format) && format.length > 0;
+      return { filled: hasFormat ? 1 : 0, total: 1 };
+    }
     default:
       return { filled: 0, total: 0 };
   }

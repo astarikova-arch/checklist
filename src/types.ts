@@ -64,6 +64,8 @@ export type DataWorkField = FieldBase & {
 export type ExpandableRowDef = {
   id: string;
   label: string;
+  /** Форма для «работать с …» в вопросах клиенту */
+  workWithLabel?: string;
   standardDetails?: boolean;
   hasSlotsFlow?: boolean;
   examplesCheckbox?: string;
@@ -87,8 +89,17 @@ export type UsageTableField = FieldBase & {
   groups?: ModuleGroup[];
 };
 
+export type AnalyticsField = FieldBase & {
+  type: 'analytics';
+  formatOptions: PillOption[];
+};
+
 export type OutboundField = FieldBase & {
   type: 'outbound';
+};
+
+export type OperatorTransferField = FieldBase & {
+  type: 'operator-transfer';
 };
 
 export type SectionField =
@@ -99,7 +110,9 @@ export type SectionField =
   | MaterialsField
   | DataWorkField
   | UsageTableField
-  | OutboundField;
+  | AnalyticsField
+  | OutboundField
+  | OperatorTransferField;
 
 export type Section = {
   id: string;

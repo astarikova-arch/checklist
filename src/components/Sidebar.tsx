@@ -1,5 +1,5 @@
 import { useMemo, useState, type MouseEvent } from 'react';
-import { buildEmailFromRequests, generateRequests } from '../requests';
+import { buildEmailFromRequests, countClientRequests, generateRequests } from '../requests';
 import type { FormValues } from '../types';
 import { ClipboardIcon } from './Icons';
 
@@ -17,7 +17,9 @@ export function Sidebar({ values, onNavigateToField }: SidebarProps) {
   const [allCopied, setAllCopied] = useState(false);
 
   const groups = useMemo(() => generateRequests(values), [values]);
-  const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+  const clientCount = countClientRequests(groups);
+  const internalCount =
+    groups.find((group) => group.title === 'ВНУТРЕННИЕ')?.items.length ?? 0;
 
   const handleCopyItem = async (id: string, text: string, event: MouseEvent) => {
     event.stopPropagation();
@@ -40,15 +42,23 @@ export function Sidebar({ values, onNavigateToField }: SidebarProps) {
             <span aria-hidden>📋</span>
             <span>Что запросить у клиента</span>
           </div>
-          <div className="sidebar-count">{total} пунктов</div>
-          {total > 0 && onNavigateToField && (
+          <div className="sidebar-count">
+            {clientCount} {clientCount === 1 ? 'пункт' : clientCount < 5 ? 'пункта' : 'пунктов'}
+            {internalCount > 0 && (
+              <span className="sidebar-count-internal">
+                {' '}
+                · {internalCount} внутр.
+              </span>
+            )}
+          </div>
+          {clientCount > 0 && onNavigateToField && (
             <p className="sidebar-hint">Нажмите на пункт — перейти к полю в форме</p>
           )}
         </header>
 
         <div className="sidebar-scroll">
           <div className="sidebar-content">
-            {total === 0 ? (
+            {clientCount === 0 && internalCount === 0 ? (
               <div className="sidebar-empty">
                 Все ключевые поля заполнены — список запросов пуст.
               </div>
@@ -100,7 +110,7 @@ export function Sidebar({ values, onNavigateToField }: SidebarProps) {
             type="button"
             className="sidebar-copy-all"
             onClick={handleCopyAll}
-            disabled={total === 0}
+            disabled={clientCount === 0}
           >
             <ClipboardIcon dark />
             <span>{allCopied ? 'Скопировано!' : 'Копировать всё'}</span>

@@ -2,6 +2,7 @@ import type {
   CheckboxField as CheckboxFieldType,
   CheckboxGroupField,
   DataWorkField,
+  AnalyticsField,
   FormValues,
   MaterialsField,
   OutboundField,
@@ -10,7 +11,9 @@ import type {
   SectionField,
   UsageTableField,
 } from '../types';
+import { AnalyticsBlock } from './AnalyticsBlock';
 import { DataWorkBlock } from './DataWorkBlock';
+import { OperatorTransferBlock } from './OperatorTransferBlock';
 import { CheckboxRow } from './CheckboxRow';
 import { MaterialsBlock } from './MaterialsBlock';
 import { OutboundBlock } from './OutboundBlock';
@@ -155,6 +158,16 @@ export function FieldRenderer({
     );
   }
 
+  if (field.type === 'operator-transfer') {
+    return (
+      <OperatorTransferBlock
+        values={values}
+        onPillChange={onPillChange}
+        onCheckboxChange={onCheckboxChange}
+      />
+    );
+  }
+
   if (field.type === 'usage-table') {
     const tableField = field as UsageTableField;
     return (
@@ -166,6 +179,17 @@ export function FieldRenderer({
         agentsAutoSet={agentsAutoSet}
         onPillChange={onPillChange}
         onCheckboxChange={onCheckboxChange}
+      />
+    );
+  }
+
+  if (field.type === 'analytics') {
+    const analyticsField = field as AnalyticsField;
+    return (
+      <AnalyticsBlock
+        formatOptions={analyticsField.formatOptions}
+        values={values}
+        onPillChange={onPillChange}
       />
     );
   }

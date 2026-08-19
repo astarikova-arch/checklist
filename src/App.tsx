@@ -5,14 +5,17 @@ import { Header } from './components/Header';
 import { SectionCard } from './components/SectionCard';
 import { SectionNav } from './components/SectionNav';
 import { Sidebar } from './components/Sidebar';
-import { buildExportList, generateRequests } from './requests';
+import { buildEmailFromRequests, countClientRequests, generateRequests } from './requests';
 import { scrollToFormField } from './scroll';
-import { clearFormValues, loadFormValues, saveFormValues } from './storage';
+import { clearFormValues, saveFormValues } from './storage';
 import type { FormValues } from './types';
 import {
   clearDataWorkDetails,
+  clearOperatorTransferDetails,
   clearPillDetails,
   clearRowDetails,
+  createInitialValues,
+  getModuleDefaults,
   getVisibleSections,
   layoutSections,
   moduleKey,
@@ -29,9 +32,10 @@ const ROBOTS_NO_IDS = ['robotsConcerns'];
 const WORKED_WITH_CLIENT_IDS = ['clientPortrait'];
 const VOICE_HUMANITY_IDS = ['voiceHumanityConcept', 'voiceHumanitySounds'];
 const PAUSE_IDS = ['pauseSounds'];
+const INTERRUPTION_IDS = ['interruptionFormat'];
 
 function App() {
-  const [values, setValues] = useState<FormValues>(() => loadFormValues());
+  const [values, setValues] = useState<FormValues>(() => createInitialValues());
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [exportCopied, setExportCopied] = useState(false);
   const [agentsAutoSet, setAgentsAutoSet] = useState(false);
@@ -40,7 +44,7 @@ function App() {
   const visibleSections = useMemo(() => getVisibleSections(values), [values]);
   const layoutItems = useMemo(() => layoutSections(visibleSections), [visibleSections]);
   const requestGroups = useMemo(() => generateRequests(values), [values]);
-  const requestCount = requestGroups.reduce((sum, g) => sum + g.items.length, 0);
+  const requestCount = countClientRequests(requestGroups);
 
   useEffect(() => {
     saveFormValues(values);
@@ -98,6 +102,14 @@ function App() {
         next = clearDataWorkDetails(next);
       }
 
+      if (fieldId === 'operatorTransfer' && next.operatorTransfer !== 'yes') {
+        next = clearOperatorTransferDetails(next);
+      }
+
+      if (fieldId === 'operatorTransferAudioWhisper' && next.operatorTransferAudioWhisper !== 'yes') {
+        delete next.operatorTransferData;
+      }
+
       if (fieldId === 'lprDemo' && next.lprDemo !== 'yes') {
         next = clearPillDetails(next, fieldId, LPR_DETAIL_IDS);
       }
@@ -123,6 +135,10 @@ function App() {
         next = clearPillDetails(next, fieldId, PAUSE_IDS);
       }
 
+      if (fieldId === 'interruption' && next.interruption !== 'yes') {
+        next = clearPillDetails(next, fieldId, INTERRUPTION_IDS);
+      }
+
       if (fieldId === 'hasScheme' && next.hasScheme !== 'yes') {
         next = clearPillDetails(next, fieldId, ['hasSchemeDeviation']);
       }
@@ -135,6 +151,10 @@ function App() {
       }
       if (fieldId === 'outboundCallbackUsed' && next.outboundCallbackUsed !== 'yes') {
         delete next.outboundCallbackType;
+      }
+
+      if (fieldId === 'analyticsNeeded' && next.analyticsNeeded !== 'yes') {
+        delete next.analyticsFormat;
       }
 
       const slotsKey = moduleKey('time', 'slots');
@@ -169,14 +189,14 @@ function App() {
     if (!window.confirm('Сбросить все ответы? Сохранённые данные будут удалены.')) {
       return;
     }
-    setValues({});
+    setValues(getModuleDefaults());
     setAgentsAutoSet(false);
     setActiveSection(null);
     clearFormValues();
   };
 
   const handleExport = async () => {
-    await copyText(buildExportList(requestGroups));
+    await copyText(buildEmailFromRequests(requestGroups));
     setExportCopied(true);
     setTimeout(() => setExportCopied(false), 2000);
   };
@@ -191,14 +211,18 @@ function App() {
     const sectionMap: Record<string, string> = {
       projectType: 'intro',
       automationGoal: 'intro',
+      productLimitsNone: 'intro',
       outboundTimeUsed: 'outbound',
       desiredKpi: 'metrics',
       hasScheme: 'materials',
       voiceHumanity: 'voice',
+      interruption: 'voice',
       module_fio_used: 'modules',
       logic_faq_used: 'logic',
       logic_dataWork_used: 'logic',
+      operatorTransfer: 'logic',
       analyticsFormat: 'analytics',
+      analyticsNeeded: 'analytics',
     };
 
     const prefix = scrollTarget.split('_')[0];

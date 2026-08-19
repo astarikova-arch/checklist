@@ -11,6 +11,11 @@ const yesNo = [
   { id: 'no', label: 'Нет' },
 ];
 
+const existsYesNo = [
+  { id: 'yes', label: 'Есть' },
+  { id: 'no', label: 'Нет' },
+];
+
 const existsOptions = [
   { id: 'yes', label: 'Да' },
   { id: 'no', label: 'Нет' },
@@ -36,37 +41,51 @@ export const moduleGroups: ModuleGroup[] = [
 ];
 
 export const moduleRows: ExpandableRowDef[] = [
-  { id: 'fio', label: 'ФИО', standardDetails: true },
-  { id: 'region', label: 'Регион', standardDetails: true },
-  { id: 'city', label: 'Город', standardDetails: true },
-  { id: 'address', label: 'Адрес', standardDetails: true },
-  { id: 'phone', label: 'Телефон', standardDetails: true },
-  { id: 'email', label: 'E-mail', standardDetails: true },
+  { id: 'fio', label: 'ФИО', workWithLabel: 'ФИО', standardDetails: true },
+  { id: 'region', label: 'Регион', workWithLabel: 'регионом', standardDetails: true },
+  { id: 'city', label: 'Город', workWithLabel: 'городом', standardDetails: true },
+  { id: 'address', label: 'Адрес', workWithLabel: 'адресом', standardDetails: true },
+  { id: 'phone', label: 'Телефон', workWithLabel: 'телефоном', standardDetails: true },
+  { id: 'email', label: 'E-mail', workWithLabel: 'e-mail', standardDetails: true },
   {
     id: 'time',
     label: 'Время / Интервал / Дата',
+    workWithLabel: 'временем, интервалом и датой',
     standardDetails: true,
     hasSlotsFlow: true,
   },
   {
     id: 'product',
     label: 'Услуга / Товар',
+    workWithLabel: 'услугой или товаром',
     standardDetails: true,
     examplesCheckbox: 'Примеры данных указаны',
   },
   {
     id: 'order',
     label: 'Номер заказа / накладной / договора',
+    workWithLabel: 'номером заказа, накладной или договора',
     standardDetails: true,
     examplesCheckbox: 'Примеры данных указаны',
   },
   {
     id: 'survey',
     label: 'Анкета',
+    workWithLabel: 'анкетой',
     durationCheckbox: 'Ожидаемая длительность диалога указана',
   },
-  { id: 'rating', label: 'Оценка', yesCheckbox: 'Критерии оценок ясны' },
-  { id: 'agents', label: 'Агенты', noDetailsOnYes: true },
+  {
+    id: 'rating',
+    label: 'Оценка',
+    workWithLabel: 'оценкой',
+    yesCheckbox: 'Критерии оценок ясны',
+  },
+  {
+    id: 'agents',
+    label: 'Агенты',
+    workWithLabel: 'агентами',
+    yesCheckbox: 'Наша ЭЭ учтена',
+  },
 ];
 
 export const logicRows: ExpandableRowDef[] = [
@@ -82,7 +101,6 @@ export const logicRows: ExpandableRowDef[] = [
     id: 'topics',
     label: 'Специфичные тематики',
     yesNoOnly: true,
-    yesCheckbox: 'Есть звонки/транскрибация',
   },
 ];
 
@@ -176,6 +194,12 @@ export const sections: Section[] = [
         options: yesNoUnknown,
         detailsOnYes: [{ id: 'clientPortrait', label: 'Портрет клиента' }],
       },
+      {
+        id: 'productLimitsNone',
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Ограничения со стороны продукта отсутствуют',
+      },
     ],
   },
   {
@@ -251,6 +275,13 @@ export const sections: Section[] = [
           },
         ],
       },
+      {
+        id: 'interruption',
+        label: 'Перебивание',
+        type: 'pill-with-details',
+        options: yesNoUnknown,
+        detailsOnYes: [{ id: 'interruptionFormat', label: 'Формат перебивания указан' }],
+      },
     ],
   },
   {
@@ -287,6 +318,11 @@ export const sections: Section[] = [
         subItems: dataWorkSubItems,
         outboundCheckbox: 'Информация передаваемая с номером телефона указана',
       },
+      {
+        id: 'operatorTransfer',
+        label: 'Переход на оператора',
+        type: 'operator-transfer',
+      },
     ],
   },
   {
@@ -295,11 +331,10 @@ export const sections: Section[] = [
     title: 'Аналитика',
     fields: [
       {
-        id: 'analyticsFormat',
-        label: 'Формат аналитики',
-        type: 'pills',
-        multiple: true,
-        options: [
+        id: 'analyticsBlock',
+        label: '',
+        type: 'analytics',
+        formatOptions: [
           { id: 'tiles', label: 'Плитки' },
           { id: 'filters', label: 'Фильтры' },
           { id: 'customColumns', label: 'Кастомные столбцы' },
@@ -312,6 +347,7 @@ export const sections: Section[] = [
 export const moduleUsageOptions = yesNoUnknown;
 export const logicUsageOptions = yesNoUnknown;
 export const yesNoOptions = yesNo;
+export const existsYesNoOptions = existsYesNo;
 export const existsOptionsExport = existsOptions;
 
 export const moduleModeOptions = [
