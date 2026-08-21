@@ -35,7 +35,6 @@ export function layoutSections(visible: Section[]): SectionLayoutItem[] {
 export function getModuleDefaults(): FormValues {
   const defaults: FormValues = {};
   for (const row of moduleRows) {
-    if (row.id === 'faq' || row.id === 'topics') continue;
     defaults[rowKey('module', row.id, 'used')] = 'no';
   }
   return defaults;
@@ -239,7 +238,7 @@ function isDataWorkComplete(values: FormValues): boolean {
 
 export function isOperatorTransferComplete(values: FormValues): boolean {
   const used = values.operatorTransfer;
-  if (typeof used !== 'string' || !used || needsRequestForPill(used)) return false;
+  if (typeof used !== 'string' || !used) return false;
   if (used !== 'yes') return true;
 
   const audioWhisper = values.operatorTransferAudioWhisper;
@@ -262,7 +261,7 @@ function isPillFieldFilled(field: Extract<SectionField, { type: 'pills' }>, valu
   if (field.multiple) {
     return Array.isArray(value) && value.length > 0;
   }
-  return typeof value === 'string' && value.length > 0 && !needsRequestForPill(value);
+  return typeof value === 'string' && value.length > 0;
 }
 
 function isPillWithDetailsFilled(
@@ -270,11 +269,7 @@ function isPillWithDetailsFilled(
   values: FormValues,
 ): boolean {
   const value = values[field.id];
-  if (typeof value !== 'string' || !value.length) return false;
-  if (field.requestOnUnknownOnly) {
-    return value === 'yes' || value === 'no';
-  }
-  return !needsRequestForPill(value);
+  return typeof value === 'string' && value.length > 0;
 }
 
 function countFieldBlocks(field: SectionField, values: FormValues): { filled: number; total: number } {
