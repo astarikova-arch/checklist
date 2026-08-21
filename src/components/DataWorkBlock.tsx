@@ -37,36 +37,42 @@ function DataWorkSub({
   const showDetails = !item.hasUsedPills || used === 'yes';
   const showDocs =
     Boolean(item.docsCheckbox && item.method?.apiOptionId) && method === item.method?.apiOptionId;
+  const headerPills = item.hasUsedPills
+    ? { key: usedKey, options: moduleUsageOptions, value: used }
+    : item.method && !item.method.label
+      ? { key: methodKey, options: item.method.options, value: method }
+      : null;
+  const showMethodBlock = showDetails && item.method && Boolean(item.method.label);
+  const showChecks = showDetails && Boolean(item.examplesCheckbox || showDocs);
 
   return (
     <div className="data-work-sub">
-      <div className="data-work-sub-title">{item.label}</div>
+      <div className="data-work-sub-header">
+        <div className="data-work-sub-title">{item.label}</div>
+        {headerPills && (
+          <div className="field-control field-anchor" id={`field-${headerPills.key}`}>
+            <PillGroup
+              options={headerPills.options}
+              value={headerPills.value}
+              onChange={(optionId) => onPillChange(headerPills.key, optionId)}
+            />
+          </div>
+        )}
+      </div>
 
-      {item.hasUsedPills && (
-        <div className="data-work-sub-pills field-anchor" id={`field-${usedKey}`}>
+      {showMethodBlock && item.method && (
+        <div className="data-work-sub-pills field-anchor" id={`field-${methodKey}`}>
+          <span className="modules-table-details-label">{item.method.label}</span>
           <PillGroup
-            options={moduleUsageOptions}
-            value={used}
-            onChange={(optionId) => onPillChange(usedKey, optionId)}
+            options={item.method.options}
+            value={method}
+            onChange={(optionId) => onPillChange(methodKey, optionId)}
           />
         </div>
       )}
 
-      {showDetails && (
-        <>
-          {item.method && (
-            <div className="data-work-sub-pills field-anchor" id={`field-${methodKey}`}>
-              {item.method.label && (
-                <span className="modules-table-details-label">{item.method.label}</span>
-              )}
-              <PillGroup
-                options={item.method.options}
-                value={method}
-                onChange={(optionId) => onPillChange(methodKey, optionId)}
-              />
-            </div>
-          )}
-
+      {showChecks && (
+        <div className="data-work-sub-checks">
           {item.examplesCheckbox && (
             <div className="field-anchor" id={`field-${examplesKey}`}>
               <CheckboxRow
@@ -78,7 +84,6 @@ function DataWorkSub({
               />
             </div>
           )}
-
           {showDocs && item.docsCheckbox && (
             <div className="field-anchor" id={`field-${docsKey}`}>
               <CheckboxRow
@@ -90,7 +95,7 @@ function DataWorkSub({
               />
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -109,7 +114,7 @@ export function DataWorkBlock({
   const visibleItems = subItems.filter((item) => !item.outboundOnly || outbound);
 
   return (
-    <div className="data-work-block field-anchor" id="field-logic_dataWork_used">
+    <div className="field-block field-anchor" id="field-logic_dataWork_used">
       <div className="field-row field-row--compact">
         <div className="field-label field-label--compact">{label}</div>
         <div className="field-control">
@@ -122,7 +127,7 @@ export function DataWorkBlock({
       </div>
 
       {showDetails && (
-        <div className="data-work-details">
+        <div className="field-details field-details--compact data-work-details">
           {visibleItems.map((item) => (
             <DataWorkSub
               key={item.id}

@@ -21,7 +21,7 @@ export function OperatorTransferBlock({
       : '';
 
   return (
-    <div className="data-work-block field-anchor" id="field-operatorTransfer">
+    <div className="field-block field-anchor" id="field-operatorTransfer">
       <div className="field-row field-row--compact">
         <div className="field-label field-label--compact">Перевод на оператора</div>
         <div className="field-control">
@@ -34,28 +34,26 @@ export function OperatorTransferBlock({
       </div>
 
       {used === 'yes' && (
-        <div className="data-work-details">
-          <div className="data-work-sub">
-            <div className="data-work-sub-pills field-anchor" id="field-operatorTransferAudioWhisper">
-              <span className="modules-table-details-label">Аудиошепот</span>
-              <PillGroup
-                options={existsYesNoOptions}
-                value={audioWhisper}
-                onChange={(optionId) => onPillChange('operatorTransferAudioWhisper', optionId)}
+        <div className="field-details field-details--compact data-work-details">
+          <div className="data-work-sub-pills field-anchor" id="field-operatorTransferAudioWhisper">
+            <span className="modules-table-details-label">Аудиошепот</span>
+            <PillGroup
+              options={existsYesNoOptions}
+              value={audioWhisper}
+              onChange={(optionId) => onPillChange('operatorTransferAudioWhisper', optionId)}
+            />
+          </div>
+          {audioWhisper === 'yes' && (
+            <div className="field-anchor" id="field-operatorTransferData">
+              <CheckboxRow
+                id="operatorTransferData"
+                label="Данные, которые должны передавать оператору, указаны"
+                compact
+                checked={values.operatorTransferData === true}
+                onChange={(checked) => onCheckboxChange('operatorTransferData', checked)}
               />
             </div>
-            {audioWhisper === 'yes' && (
-              <div className="field-anchor" id="field-operatorTransferData">
-                <CheckboxRow
-                  id="operatorTransferData"
-                  label="Данные, которые должны передавать оператору, указаны"
-                  compact
-                  checked={values.operatorTransferData === true}
-                  onChange={(checked) => onCheckboxChange('operatorTransferData', checked)}
-                />
-              </div>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>
