@@ -26,7 +26,7 @@ export function SectionCard({
 
   return (
     <section
-      className={`section-card ${inRow ? 'section-card--in-row' : ''}`}
+      className={`section-card ${inRow ? 'section-card--in-row' : ''} ${section.id === 'logic' || section.id === 'operator' ? 'section-card--flush-details' : ''}`}
       id={`section-${section.id}`}
     >
       <header className="section-header">

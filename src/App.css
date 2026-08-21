@@ -277,6 +277,13 @@ h2 {
   margin-left: 122px;
 }
 
+.section-card--flush-details .field-details,
+.section-card--flush-details .field-details--compact,
+.section-card--in-row.section-card--flush-details .field-details,
+.section-card--in-row.section-card--flush-details .field-details--compact {
+  margin-left: 0;
+}
+
 .section-card {
   scroll-margin-top: 72px;
   background: var(--bg-card);
@@ -1004,6 +1011,13 @@ h2 {
   .section-card--in-row .field-details,
   .section-card--in-row .field-details--compact {
     margin-left: 148px;
+  }
+
+  .section-card--flush-details .field-details,
+  .section-card--flush-details .field-details--compact,
+  .section-card--in-row.section-card--flush-details .field-details,
+  .section-card--in-row.section-card--flush-details .field-details--compact {
+    margin-left: 0;
   }
 }
 
