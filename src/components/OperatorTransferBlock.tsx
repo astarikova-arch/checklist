@@ -34,7 +34,7 @@ export function OperatorTransferBlock({
       </div>
 
       {used === 'yes' && (
-        <div className="field-details field-details--compact data-work-details">
+        <div className="field-details field-details--compact">
           <div className="data-work-sub-pills field-anchor" id="field-operatorTransferAudioWhisper">
             <span className="modules-table-details-label">Аудиошепот</span>
             <PillGroup
@@ -54,6 +54,15 @@ export function OperatorTransferBlock({
               />
             </div>
           )}
+          <div className="field-anchor" id="field-operatorTransferFailureActions">
+            <CheckboxRow
+              id="operatorTransferFailureActions"
+              label="Действия при неуспешном переводе указаны"
+              compact
+              checked={values.operatorTransferFailureActions === true}
+              onChange={(checked) => onCheckboxChange('operatorTransferFailureActions', checked)}
+            />
+          </div>
         </div>
       )}
     </div>

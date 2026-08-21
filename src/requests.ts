@@ -581,6 +581,15 @@ export function generateRequests(values: FormValues): RequestGroup[] {
         'operatorTransferData',
       );
     }
+    if (values.operatorTransferFailureActions !== true) {
+      push(
+        groups,
+        'Перевод на оператора',
+        'operatorTransferFailureActions',
+        'Какие действия выполнять, если перевод на оператора не удался?',
+        'operatorTransferFailureActions',
+      );
+    }
   }
 
   const analyticsNeeded = values.analyticsNeeded;

@@ -151,6 +151,7 @@ export const dataWorkSubItems: DataWorkSubItem[] = [
 export const sectionLayoutPairs: [string, string][] = [
   ['intro', 'metrics'],
   ['materials', 'voice'],
+  ['logic', 'operator'],
 ];
 
 export const sections: Section[] = [

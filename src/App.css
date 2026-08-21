@@ -681,26 +681,20 @@ h2 {
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 8px;
 }
 
 .data-work-sub {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-}
-
-.data-work-sub + .data-work-sub {
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
 }
 
 .data-work-sub-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 6px 12px;
   width: 100%;
 }
 
@@ -716,13 +710,13 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 6px 12px;
 }
 
 .data-work-sub-checks {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
+  gap: 6px 12px;
 }
 
 .materials-block {

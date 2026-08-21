@@ -232,6 +232,7 @@ function App() {
       logic_dataWork_used: 'logic',
       operatorTransfer: 'operator',
       operatorTransferAudioWhisper: 'operator',
+      operatorTransferFailureActions: 'operator',
       analyticsFormat: 'analytics',
       analyticsNeeded: 'analytics',
     };

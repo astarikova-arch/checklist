@@ -244,15 +244,16 @@ export function isOperatorTransferComplete(values: FormValues): boolean {
 
   const audioWhisper = values.operatorTransferAudioWhisper;
   if (typeof audioWhisper !== 'string' || !audioWhisper) return false;
-  if (audioWhisper !== 'yes') return true;
+  if (audioWhisper === 'yes' && values.operatorTransferData !== true) return false;
 
-  return values.operatorTransferData === true;
+  return values.operatorTransferFailureActions === true;
 }
 
 export function clearOperatorTransferDetails(values: FormValues): FormValues {
   const next = { ...values };
   delete next.operatorTransferAudioWhisper;
   delete next.operatorTransferData;
+  delete next.operatorTransferFailureActions;
   return next;
 }
 
