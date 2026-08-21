@@ -34,11 +34,12 @@ function moduleWorkForm(row: ExpandableRowDef): string {
 }
 
 function moduleUsageQuestion(row: ExpandableRowDef): string {
-  return `Должен ли робот работать с ${moduleWorkForm(row)}? Если да, то что именно робот должен делать?`;
+  const workWith = moduleWorkForm(row);
+  return `Должен ли робот работать с ${workWith}? Если да — какая ожидаемая логика работы с ${workWith}?`;
 }
 
 function moduleModeQuestion(row: ExpandableRowDef): string {
-  return `Что именно робот должен делать с ${moduleWorkForm(row)}?`;
+  return `Какая ожидаемая логика работы с ${moduleWorkForm(row)}?`;
 }
 
 function rowUsageQuestion(row: ExpandableRowDef): string {
@@ -289,7 +290,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
       groups,
       'Вводные',
       'automationGoal',
-      'Какова общая цель автоматизации? Что робот должен сделать по итогам звонка?',
+      'Какая общая цель автоматизации? Какое целевое действие, ожидаемые итоги звонков?',
       'automationGoal',
     );
   }
