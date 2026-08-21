@@ -370,7 +370,7 @@ export const existsOptionsExport = existsOptions;
 
 export const moduleModeOptions = [
   { id: 'accept', label: 'Принимаем' },
-  { id: 'verify', label: 'Верифицируем' },
+  { id: 'verify', label: 'Верифицируем / Озвучиваем' },
   { id: 'send', label: 'Отправляем' },
 ];
 

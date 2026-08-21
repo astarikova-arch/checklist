@@ -104,6 +104,7 @@ export function FieldRenderer({
         <CheckboxRow
           id={field.id}
           label={checkboxField.checkboxLabel}
+          compact
           checked={values[field.id] === true}
           onChange={(checked) => onCheckboxChange(field.id, checked)}
         />
