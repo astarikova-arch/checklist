@@ -38,6 +38,10 @@ export const moduleGroups: ModuleGroup[] = [
     title: 'Заказ и сценарий',
     rowIds: ['product', 'order', 'survey', 'rating', 'agents'],
   },
+  {
+    title: 'FAQ и тематики',
+    rowIds: ['faq', 'topics'],
+  },
 ];
 
 export const moduleRows: ExpandableRowDef[] = [
@@ -86,9 +90,6 @@ export const moduleRows: ExpandableRowDef[] = [
     workWithLabel: 'агентами',
     yesCheckbox: 'Наша ЭЭ учтена',
   },
-];
-
-export const logicRows: ExpandableRowDef[] = [
   {
     id: 'faq',
     label: 'FAQ / Возражения',
@@ -302,15 +303,8 @@ export const sections: Section[] = [
   {
     id: 'logic',
     number: 6,
-    title: 'Логика, FAQ, интеграции',
+    title: 'Логика и интеграции',
     fields: [
-      {
-        id: 'logicTable',
-        label: '',
-        type: 'usage-table',
-        keyPrefix: 'logic',
-        rows: logicRows,
-      },
       {
         id: 'dataWork',
         label: 'Работа с данными',
@@ -320,7 +314,7 @@ export const sections: Section[] = [
       },
       {
         id: 'operatorTransfer',
-        label: 'Переход на оператора',
+        label: 'Перевод на оператора',
         type: 'operator-transfer',
       },
     ],

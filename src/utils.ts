@@ -35,6 +35,7 @@ export function layoutSections(visible: Section[]): SectionLayoutItem[] {
 export function getModuleDefaults(): FormValues {
   const defaults: FormValues = {};
   for (const row of moduleRows) {
+    if (row.id === 'faq' || row.id === 'topics') continue;
     defaults[rowKey('module', row.id, 'used')] = 'no';
   }
   return defaults;

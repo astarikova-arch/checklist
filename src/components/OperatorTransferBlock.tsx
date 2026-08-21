@@ -23,7 +23,7 @@ export function OperatorTransferBlock({
   return (
     <div className="data-work-block field-anchor" id="field-operatorTransfer">
       <div className="field-row field-row--compact">
-        <div className="field-label field-label--compact">Переход на оператора</div>
+        <div className="field-label field-label--compact">Перевод на оператора</div>
         <div className="field-control">
           <PillGroup
             options={moduleUsageOptions}

@@ -1,4 +1,4 @@
-import { dataWorkSubItems, logicRows, moduleRows } from './data';
+import { dataWorkSubItems, moduleRows } from './data';
 import type { ExpandableRowDef, FormValues, RequestGroup } from './types';
 import {
   getRowUsed,
@@ -41,6 +41,16 @@ function moduleModeQuestion(row: ExpandableRowDef): string {
   return `Что именно робот должен делать с ${moduleWorkForm(row)}?`;
 }
 
+function rowUsageQuestion(row: ExpandableRowDef): string {
+  if (row.id === 'faq') {
+    return 'Нужна ли в сценарии отработка FAQ и возражений?';
+  }
+  if (row.id === 'topics') {
+    return 'Есть ли специфичные тематики, которые нужно учесть в сценарии?';
+  }
+  return moduleUsageQuestion(row);
+}
+
 function collectRowRequests(
   groups: Map<string, RequestGroup>,
   category: string,
@@ -52,17 +62,7 @@ function collectRowRequests(
     const usedKey = rowKey(prefix, row.id, 'used');
     const used = getRowUsed(values, prefix, row.id);
     if (!used || used === 'unknown') {
-      let text: string;
-      if (prefix === 'module') {
-        text = moduleUsageQuestion(row);
-      } else if (row.id === 'faq') {
-        text = 'Нужна ли в сценарии отработка FAQ и возражений?';
-      } else if (row.id === 'topics') {
-        text = 'Есть ли специфичные тематики, которые нужно учесть в сценарии?';
-      } else {
-        text = moduleUsageQuestion(row);
-      }
-      push(groups, category, `${prefix}-${row.id}`, text, usedKey);
+      push(groups, category, `${prefix}-${row.id}`, rowUsageQuestion(row), usedKey);
       continue;
     }
     if (used === 'no') continue;
@@ -507,9 +507,20 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     );
   }
 
-  collectRowRequests(groups, 'Данные', 'module', moduleRows, values);
-
-  collectRowRequests(groups, 'Логика', 'logic', logicRows, values);
+  collectRowRequests(
+    groups,
+    'Данные',
+    'module',
+    moduleRows.filter((row) => row.id !== 'faq' && row.id !== 'topics'),
+    values,
+  );
+  collectRowRequests(
+    groups,
+    'Логика',
+    'module',
+    moduleRows.filter((row) => row.id === 'faq' || row.id === 'topics'),
+    values,
+  );
   collectDataWorkRequests(groups, values);
 
   if (needsRequestForPill(values.operatorTransfer)) {
@@ -517,7 +528,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
       groups,
       'Логика',
       'operatorTransfer',
-      'Нужен ли переход на оператора в сценарии?',
+      'Нужен ли перевод на оператора в сценарии?',
       'operatorTransfer',
     );
   } else if (values.operatorTransfer === 'yes') {

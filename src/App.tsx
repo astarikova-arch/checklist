@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
-import { logicRows, moduleRows } from './data';
+import { moduleRows } from './data';
 import { Header } from './components/Header';
 import { SectionCard } from './components/SectionCard';
 import { SectionNav } from './components/SectionNav';
@@ -87,14 +87,6 @@ function App() {
         }
         if (moduleMatch[1] === 'agents') {
           setAgentsAutoSet(false);
-        }
-      }
-
-      const logicMatch = fieldId.match(/^logic_(.+)_used$/);
-      if (logicMatch) {
-        const row = logicRows.find((r) => r.id === logicMatch[1]);
-        if (row && next[fieldId] !== 'yes') {
-          next = clearRowDetails(next, 'logic', row);
         }
       }
 
@@ -218,7 +210,6 @@ function App() {
       voiceHumanity: 'voice',
       interruption: 'voice',
       module_fio_used: 'modules',
-      logic_faq_used: 'logic',
       logic_dataWork_used: 'logic',
       operatorTransfer: 'logic',
       analyticsFormat: 'analytics',
