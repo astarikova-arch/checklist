@@ -15,6 +15,17 @@ function migrateFormValues(values: FormValues): FormValues {
     delete next[key];
   }
 
+  const afterPills = next.logic_dataAfter_pills;
+  if (next.logic_dataAfter_method === undefined && Array.isArray(afterPills)) {
+    if (afterPills.includes('api')) {
+      next.logic_dataAfter_method = 'api';
+    }
+  }
+  delete next.logic_dataAfter_pills;
+  delete next.logic_dataBefore_flag;
+  delete next.logic_dataDuring_flag;
+  delete next.logic_dataWork_phoneInfo;
+
   return next;
 }
 

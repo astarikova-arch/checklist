@@ -108,26 +108,43 @@ export const moduleRows: ExpandableRowDef[] = [
 export const dataWorkSubItems: DataWorkSubItem[] = [
   {
     id: 'dataBefore',
-    label: 'Данные ДО звонка',
-    yesCheckbox: 'Нужна предобработка',
-  },
-  {
-    id: 'dataAfter',
-    label: 'Передача данных ПОСЛЕ звонка',
-    yesPills: {
-      label: 'Способ передачи',
-      multiple: true,
+    label: 'Данные на обзвон',
+    outboundOnly: true,
+    hasUsedPills: true,
+    method: {
+      label: 'Способ получения',
       options: [
-        { id: 'api', label: 'АПИ' },
-        { id: 'textWhisper', label: 'Текстошёпот' },
-        { id: 'audioWhisper', label: 'Аудиошёпот' },
+        { id: 'table', label: 'Таблица' },
+        { id: 'api', label: 'API' },
       ],
+      apiOptionId: 'api',
     },
+    examplesCheckbox: 'Есть примеры реальных данных',
+    docsCheckbox: 'Есть документация',
   },
   {
     id: 'dataDuring',
-    label: 'Данные ВО ВРЕМЯ звонка',
-    yesCheckbox: 'Все данные есть',
+    label: 'Данные во время звонка',
+    method: {
+      label: 'Тип источника данных',
+      options: [
+        { id: 'api', label: 'Динамический (API)' },
+        { id: 'static', label: 'Статические данные (предзагруженные таблицы)' },
+      ],
+      apiOptionId: 'api',
+    },
+    examplesCheckbox: 'Есть примеры реальных данных',
+    docsCheckbox: 'Есть документация',
+  },
+  {
+    id: 'dataAfter',
+    label: 'Отправка данных после звонка',
+    method: {
+      options: [
+        { id: 'api', label: 'API' },
+        { id: 'callsTable', label: 'Таблица звонков' },
+      ],
+    },
   },
 ];
 
@@ -303,15 +320,21 @@ export const sections: Section[] = [
   {
     id: 'logic',
     number: 6,
-    title: 'Логика и интеграции',
+    title: 'Интеграции',
     fields: [
       {
         id: 'dataWork',
-        label: 'Работа с данными',
+        label: 'Получение/отправка данных',
         type: 'data-work',
         subItems: dataWorkSubItems,
-        outboundCheckbox: 'Информация передаваемая с номером телефона указана',
       },
+    ],
+  },
+  {
+    id: 'operator',
+    number: 7,
+    title: 'Перевод на оператора',
+    fields: [
       {
         id: 'operatorTransfer',
         label: 'Перевод на оператора',
@@ -321,7 +344,7 @@ export const sections: Section[] = [
   },
   {
     id: 'analytics',
-    number: 7,
+    number: 8,
     title: 'Аналитика',
     fields: [
       {

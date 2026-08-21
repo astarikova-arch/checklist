@@ -5,7 +5,6 @@ import type {
   AnalyticsField,
   FormValues,
   MaterialsField,
-  OutboundField,
   PillField,
   PillWithDetailsField,
   SectionField,
@@ -150,7 +149,6 @@ export function FieldRenderer({
       <DataWorkBlock
         label={dataField.label}
         subItems={dataField.subItems}
-        outboundCheckbox={dataField.outboundCheckbox}
         values={values}
         onPillChange={onPillChange}
         onCheckboxChange={onCheckboxChange}

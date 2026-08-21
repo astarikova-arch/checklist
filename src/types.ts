@@ -47,18 +47,23 @@ export type MaterialsField = FieldBase & {
 export type DataWorkSubItem = {
   id: string;
   label: string;
-  yesCheckbox?: string;
-  yesPills?: {
-    label: string;
+  /** Только для исходящих проектов */
+  outboundOnly?: boolean;
+  /** Да / Нет / Неизвестно перед деталями */
+  hasUsedPills?: boolean;
+  method?: {
+    label?: string;
     options: PillOption[];
-    multiple?: boolean;
+    /** Значение, при котором показываем чекбокс документации */
+    apiOptionId?: string;
   };
+  examplesCheckbox?: string;
+  docsCheckbox?: string;
 };
 
 export type DataWorkField = FieldBase & {
   type: 'data-work';
   subItems: DataWorkSubItem[];
-  outboundCheckbox?: string;
 };
 
 export type ExpandableRowDef = {

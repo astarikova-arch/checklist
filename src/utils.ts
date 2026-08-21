@@ -137,13 +137,20 @@ export function clearPillDetails(values: FormValues, _fieldId: string, detailIds
   return next;
 }
 
-export function clearDataWorkDetails(values: FormValues): FormValues {
+export function clearDataWorkSubDetails(values: FormValues, itemId: string): FormValues {
   const next = { ...values };
+  for (const suffix of ['used', 'method', 'examples', 'docs', 'flag', 'pills']) {
+    delete next[logicKey(itemId, suffix)];
+  }
+  return next;
+}
+
+export function clearDataWorkDetails(values: FormValues): FormValues {
+  let next = { ...values };
   delete next.logic_dataWork_phoneInfo;
 
   for (const item of dataWorkSubItems) {
-    delete next[logicKey(item.id, 'flag')];
-    delete next[logicKey(item.id, 'pills')];
+    next = clearDataWorkSubDetails(next, item.id);
   }
 
   return next;
@@ -191,21 +198,43 @@ export function isRowAnsweredComplete(
   return true;
 }
 
+function isDataWorkSubComplete(
+  values: FormValues,
+  item: (typeof dataWorkSubItems)[number],
+  outbound: boolean,
+): boolean {
+  if (item.outboundOnly && !outbound) return true;
+
+  if (item.hasUsedPills) {
+    const used = values[logicKey(item.id, 'used')];
+    if (typeof used !== 'string' || !used) return false;
+    if (used !== 'yes') return true;
+  }
+
+  if (item.method) {
+    const method = values[logicKey(item.id, 'method')];
+    if (typeof method !== 'string' || !method) return false;
+    if (
+      item.docsCheckbox &&
+      item.method.apiOptionId &&
+      method === item.method.apiOptionId &&
+      values[logicKey(item.id, 'docs')] !== true
+    ) {
+      return false;
+    }
+  }
+
+  if (item.examplesCheckbox && values[logicKey(item.id, 'examples')] !== true) return false;
+  return true;
+}
+
 function isDataWorkComplete(values: FormValues): boolean {
   const used = values.logic_dataWork_used;
   if (typeof used !== 'string' || !used) return false;
   if (used === 'no' || used === 'unknown') return true;
 
-  for (const item of dataWorkSubItems) {
-    if (item.yesCheckbox && values[logicKey(item.id, 'flag')] !== true) return false;
-    if (item.yesPills) {
-      const pills = values[logicKey(item.id, 'pills')];
-      if (!Array.isArray(pills) || pills.length === 0) return false;
-    }
-  }
-
-  if (isOutbound(values) && values.logic_dataWork_phoneInfo !== true) return false;
-  return true;
+  const outbound = isOutbound(values);
+  return dataWorkSubItems.every((item) => isDataWorkSubComplete(values, item, outbound));
 }
 
 export function isOperatorTransferComplete(values: FormValues): boolean {

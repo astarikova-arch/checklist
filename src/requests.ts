@@ -196,48 +196,79 @@ function collectDataWorkRequests(groups: Map<string, RequestGroup>, values: Form
   if (!used || used === 'unknown') {
     push(
       groups,
-      'Логика',
+      'Интеграции',
       'dataWork',
-      'Будет ли робот работать с данными до, во время и после звонка?',
+      'Нужно ли получать или отправлять данные до, во время или после звонка?',
       usedKey,
     );
     return;
   }
   if (used === 'no') return;
 
+  const outbound = isOutbound(values);
+
   for (const item of dataWorkSubItems) {
-    if (item.yesCheckbox && values[logicKey(item.id, 'flag')] !== true) {
-      const text =
-        item.id === 'dataBefore'
-          ? 'Нужна ли предобработка данных до звонка? Если да — какая?'
-          : item.id === 'dataDuring'
-            ? 'Все ли данные, необходимые во время звонка, будут доступны роботу?'
-            : `${item.yesCheckbox}?`;
-      push(groups, 'Логика', `dataWork-${item.id}-flag`, text, logicKey(item.id, 'flag'));
+    if (item.outboundOnly && !outbound) continue;
+
+    if (item.hasUsedPills) {
+      const subUsedKey = logicKey(item.id, 'used');
+      const subUsed = values[subUsedKey];
+      if (!subUsed || subUsed === 'unknown') {
+        const text =
+          item.id === 'dataBefore'
+            ? 'Будут ли данные на обзвон (данные до звонка)?'
+            : `Нужны ли «${item.label}»?`;
+        push(groups, 'Интеграции', `dataWork-${item.id}`, text, subUsedKey);
+        continue;
+      }
+      if (subUsed !== 'yes') continue;
     }
-    if (item.yesPills) {
-      const pillsKey = logicKey(item.id, 'pills');
-      const pills = values[pillsKey];
-      if (!Array.isArray(pills) || pills.length === 0) {
-        push(
-          groups,
-          'Логика',
-          `dataWork-${item.id}-pills`,
-          'Способ передачи данных, зафиксированных в звонке: запись в таблицу с выгрузкой из ЛК в Excel или передача по API?',
-          pillsKey,
-        );
+
+    if (item.method) {
+      const methodKey = logicKey(item.id, 'method');
+      const method = values[methodKey];
+      if (typeof method !== 'string' || !method) {
+        let text = `Какой способ для блока «${item.label}»?`;
+        if (item.id === 'dataBefore') {
+          text = 'Как робот будет получать данные на обзвон: из таблицы или по API?';
+        } else if (item.id === 'dataDuring') {
+          text =
+            'Какой тип источника данных во время звонка: динамический (API) или статические данные (предзагруженные таблицы)?';
+        } else if (item.id === 'dataAfter') {
+          text = 'Как будут отправляться данные после звонка: по API или в таблицу звонков?';
+        }
+        push(groups, 'Интеграции', `dataWork-${item.id}-method`, text, methodKey);
+      } else if (
+        item.docsCheckbox &&
+        item.method.apiOptionId &&
+        method === item.method.apiOptionId &&
+        values[logicKey(item.id, 'docs')] !== true
+      ) {
+        const text =
+          item.id === 'dataBefore'
+            ? 'Есть ли документация по API для данных на обзвон?'
+            : item.id === 'dataDuring'
+              ? 'Есть ли документация по API для данных во время звонка?'
+              : 'Есть ли документация по API?';
+        push(groups, 'Интеграции', `dataWork-${item.id}-docs`, text, logicKey(item.id, 'docs'));
       }
     }
-  }
 
-  if (isOutbound(values) && values.logic_dataWork_phoneInfo !== true) {
-    push(
-      groups,
-      'Логика',
-      'dataWork-phoneInfo',
-      'Будет ли робот получать информацию об абоненте вместе с номером телефона? Какую именно?',
-      'logic_dataWork_phoneInfo',
-    );
+    if (item.examplesCheckbox && values[logicKey(item.id, 'examples')] !== true) {
+      const text =
+        item.id === 'dataBefore'
+          ? 'Просим примеры реальных данных для обзвона.'
+          : item.id === 'dataDuring'
+            ? 'Просим примеры реальных данных, используемых во время звонка.'
+            : 'Просим примеры реальных данных.';
+      push(
+        groups,
+        'Интеграции',
+        `dataWork-${item.id}-examples`,
+        text,
+        logicKey(item.id, 'examples'),
+      );
+    }
   }
 }
 
@@ -526,7 +557,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
   if (needsRequestForPill(values.operatorTransfer)) {
     push(
       groups,
-      'Логика',
+      'Перевод на оператора',
       'operatorTransfer',
       'Нужен ли перевод на оператора в сценарии?',
       'operatorTransfer',
@@ -536,7 +567,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     if (typeof audioWhisper !== 'string' || !audioWhisper) {
       push(
         groups,
-        'Логика',
+        'Перевод на оператора',
         'operatorTransferAudioWhisper',
         'При переводе звонка на оператора, нужно ли передавать какую-то информацию из разговора абонента с роботом?',
         'operatorTransferAudioWhisper',
@@ -544,7 +575,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     } else if (audioWhisper === 'yes' && values.operatorTransferData !== true) {
       push(
         groups,
-        'Логика',
+        'Перевод на оператора',
         'operatorTransferData',
         'Какие данные по звонку должны передаваться оператору?',
         'operatorTransferData',
@@ -582,6 +613,8 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     'Озвучка',
     'Данные',
     'Логика',
+    'Интеграции',
+    'Перевод на оператора',
     'Аналитика',
     'Внутренние',
   ];

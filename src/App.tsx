@@ -11,6 +11,7 @@ import { clearFormValues, saveFormValues } from './storage';
 import type { FormValues } from './types';
 import {
   clearDataWorkDetails,
+  clearDataWorkSubDetails,
   clearOperatorTransferDetails,
   clearPillDetails,
   clearRowDetails,
@@ -92,6 +93,24 @@ function App() {
 
       if (fieldId === 'logic_dataWork_used' && next.logic_dataWork_used !== 'yes') {
         next = clearDataWorkDetails(next);
+      }
+
+      if (fieldId === 'projectType' && next.projectType !== 'outbound') {
+        next = clearDataWorkSubDetails(next, 'dataBefore');
+      }
+
+      if (fieldId === 'logic_dataBefore_used' && next.logic_dataBefore_used !== 'yes') {
+        delete next.logic_dataBefore_method;
+        delete next.logic_dataBefore_examples;
+        delete next.logic_dataBefore_docs;
+      }
+
+      if (fieldId === 'logic_dataBefore_method' && next.logic_dataBefore_method !== 'api') {
+        delete next.logic_dataBefore_docs;
+      }
+
+      if (fieldId === 'logic_dataDuring_method' && next.logic_dataDuring_method !== 'api') {
+        delete next.logic_dataDuring_docs;
       }
 
       if (fieldId === 'operatorTransfer' && next.operatorTransfer !== 'yes') {
@@ -211,7 +230,8 @@ function App() {
       interruption: 'voice',
       module_fio_used: 'modules',
       logic_dataWork_used: 'logic',
-      operatorTransfer: 'logic',
+      operatorTransfer: 'operator',
+      operatorTransferAudioWhisper: 'operator',
       analyticsFormat: 'analytics',
       analyticsNeeded: 'analytics',
     };
