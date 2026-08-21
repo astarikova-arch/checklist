@@ -180,9 +180,7 @@ h2 {
 }
 
 .section-nav-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: contents;
 }
 
 .section-nav {
@@ -195,18 +193,23 @@ h2 {
   border-radius: var(--radius-card);
   outline: 1px solid var(--border);
   outline-offset: -1px;
-  position: sticky;
-  top: 8px;
-  z-index: 10;
 }
 
 .section-nav-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 0 4px;
+  padding: 6px 8px;
   font-size: 11px;
   color: var(--text-secondary);
+  position: sticky;
+  top: 8px;
+  z-index: 10;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-card);
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
 }
 
 .section-nav-chip {
