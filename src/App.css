@@ -183,9 +183,6 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  position: sticky;
-  top: 8px;
-  z-index: 10;
 }
 
 .section-nav {
@@ -198,6 +195,9 @@ h2 {
   border-radius: var(--radius-card);
   outline: 1px solid var(--border);
   outline-offset: -1px;
+  position: sticky;
+  top: 8px;
+  z-index: 10;
 }
 
 .section-nav-legend {
@@ -838,6 +838,28 @@ h2 {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) var(--bg-inner);
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: var(--bg-inner);
+  border-radius: 0;
+  margin: 4px 0;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--bg-inner);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .sidebar-content {

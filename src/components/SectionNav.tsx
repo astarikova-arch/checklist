@@ -11,6 +11,11 @@ type SectionNavProps = {
 export function SectionNav({ sections, values, activeId, onNavigate }: SectionNavProps) {
   return (
     <div className="section-nav-wrap">
+      <div className="section-nav-legend" aria-label="Легенда статусов">
+        <span>🟢 готово</span>
+        <span>🟡 частично</span>
+        <span>🔴 пусто</span>
+      </div>
       <nav className="section-nav" aria-label="Навигация по секциям">
         {sections.map((section) => {
           const { status } = getSectionProgress(section, values);
@@ -35,11 +40,6 @@ export function SectionNav({ sections, values, activeId, onNavigate }: SectionNa
           );
         })}
       </nav>
-      <div className="section-nav-legend" aria-label="Легенда статусов">
-        <span>🟢 готово</span>
-        <span>🟡 частично</span>
-        <span>🔴 пусто</span>
-      </div>
     </div>
   );
 }
