@@ -235,6 +235,9 @@ function App() {
       operatorTransferFailureActions: 'operator',
       analyticsFormat: 'analytics',
       analyticsNeeded: 'analytics',
+      docsConfluence: 'docs',
+      docsClientMaterials: 'docs',
+      docsMeetingRecording: 'docs',
     };
 
     const prefix = scrollTarget.split('_')[0];

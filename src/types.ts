@@ -59,6 +59,8 @@ export type DataWorkSubItem = {
   };
   examplesCheckbox?: string;
   docsCheckbox?: string;
+  /** Чекбокс предобработки / постобработки */
+  processCheckbox?: string;
 };
 
 export type DataWorkField = FieldBase & {

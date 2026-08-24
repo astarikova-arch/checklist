@@ -63,6 +63,16 @@ function collectRowRequests(
     const usedKey = rowKey(prefix, row.id, 'used');
     const used = getRowUsed(values, prefix, row.id);
     if (!used || used === 'unknown') {
+      if (row.id === 'agents') {
+        push(
+          groups,
+          'Внутренние',
+          `${prefix}-${row.id}`,
+          'Требуется ли разработка агентов?',
+          usedKey,
+        );
+        continue;
+      }
       push(groups, category, `${prefix}-${row.id}`, rowUsageQuestion(row), usedKey);
       continue;
     }
@@ -270,6 +280,24 @@ function collectDataWorkRequests(groups: Map<string, RequestGroup>, values: Form
         logicKey(item.id, 'examples'),
       );
     }
+
+    if (item.processCheckbox && values[logicKey(item.id, 'process')] !== true) {
+      let text = `${item.processCheckbox}?`;
+      if (item.id === 'dataBefore') {
+        text = 'Нужна ли предобработка данных на обзвон? Если да — какая?';
+      } else if (item.id === 'dataDuring') {
+        text = 'Нужна ли предобработка данных во время звонка? Если да — какая?';
+      } else if (item.id === 'dataAfter') {
+        text = 'Нужна ли постобработка данных после звонка? Если да — какая?';
+      }
+      push(
+        groups,
+        'Интеграции',
+        `dataWork-${item.id}-process`,
+        text,
+        logicKey(item.id, 'process'),
+      );
+    }
   }
 }
 
@@ -392,6 +420,34 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     );
   }
 
+  if (values.docsConfluence !== true) {
+    push(
+      groups,
+      'Внутренние',
+      'docsConfluence',
+      'Завести документацию в конфе',
+      'docsConfluence',
+    );
+  }
+  if (values.docsClientMaterials !== true) {
+    push(
+      groups,
+      'Внутренние',
+      'docsClientMaterials',
+      'Прикрепить материалы от клиента в документацию',
+      'docsClientMaterials',
+    );
+  }
+  if (values.docsMeetingRecording !== true) {
+    push(
+      groups,
+      'Внутренние',
+      'docsMeetingRecording',
+      'Прикрепить запись встречи с клиентом в документацию',
+      'docsMeetingRecording',
+    );
+  }
+
   if (isOutbound(values)) {
     const timeUsed = values.outboundTimeUsed;
     if (!timeUsed || timeUsed === 'unknown') {
@@ -457,7 +513,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
     { id: 'hasScript', text: 'Просим предоставить скрипт диалога / документ с формулировками.' },
     {
       id: 'hasRecordings',
-      text: 'По возможности хотелось бы получить записи или транскрибации звонков (хотя бы 30–40 штук).',
+      text: 'По возможности хотелось бы получить записи или транскрибации звонков (около 100 звонков).',
     },
   ];
   for (const item of materialItems) {
@@ -510,7 +566,7 @@ export function generateRequests(values: FormValues): RequestGroup[] {
   }
 
   if (needsRequestForPill(values.pauseRequirements)) {
-    push(groups, 'Озвучка', 'pauseRequirements', 'Есть ли требования к паузам в диалоге?', 'pauseRequirements');
+    push(groups, 'Озвучка', 'pauseRequirements', 'Какая пауза от робота в диалоге кажется критичной?', 'pauseRequirements');
   } else if (values.pauseRequirements === 'yes' && values.pauseSounds !== true) {
     push(
       groups,

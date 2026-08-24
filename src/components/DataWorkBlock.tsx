@@ -32,6 +32,7 @@ function DataWorkSub({
   const methodKey = logicKey(item.id, 'method');
   const examplesKey = logicKey(item.id, 'examples');
   const docsKey = logicKey(item.id, 'docs');
+  const processKey = logicKey(item.id, 'process');
   const used = stringValue(values, usedKey);
   const method = stringValue(values, methodKey);
   const showDetails = !item.hasUsedPills || used === 'yes';
@@ -43,7 +44,8 @@ function DataWorkSub({
       ? { key: methodKey, options: item.method.options, value: method }
       : null;
   const showMethodBlock = showDetails && item.method && Boolean(item.method.label);
-  const showChecks = showDetails && Boolean(item.examplesCheckbox || showDocs);
+  const showChecks =
+    showDetails && Boolean(item.examplesCheckbox || showDocs || item.processCheckbox);
 
   return (
     <div className="data-work-sub">
@@ -92,6 +94,17 @@ function DataWorkSub({
                 compact
                 checked={values[docsKey] === true}
                 onChange={(checked) => onCheckboxChange(docsKey, checked)}
+              />
+            </div>
+          )}
+          {item.processCheckbox && (
+            <div className="field-anchor" id={`field-${processKey}`}>
+              <CheckboxRow
+                id={processKey}
+                label={item.processCheckbox}
+                compact
+                checked={values[processKey] === true}
+                onChange={(checked) => onCheckboxChange(processKey, checked)}
               />
             </div>
           )}

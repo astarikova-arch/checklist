@@ -138,7 +138,7 @@ export function clearPillDetails(values: FormValues, _fieldId: string, detailIds
 
 export function clearDataWorkSubDetails(values: FormValues, itemId: string): FormValues {
   const next = { ...values };
-  for (const suffix of ['used', 'method', 'examples', 'docs', 'flag', 'pills']) {
+  for (const suffix of ['used', 'method', 'examples', 'docs', 'process', 'flag', 'pills']) {
     delete next[logicKey(itemId, suffix)];
   }
   return next;
@@ -224,6 +224,7 @@ function isDataWorkSubComplete(
   }
 
   if (item.examplesCheckbox && values[logicKey(item.id, 'examples')] !== true) return false;
+  if (item.processCheckbox && values[logicKey(item.id, 'process')] !== true) return false;
   return true;
 }
 

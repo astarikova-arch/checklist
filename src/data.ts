@@ -121,6 +121,7 @@ export const dataWorkSubItems: DataWorkSubItem[] = [
     },
     examplesCheckbox: 'Есть примеры реальных данных',
     docsCheckbox: 'Есть документация',
+    processCheckbox: 'Нужна предобработка данных',
   },
   {
     id: 'dataDuring',
@@ -135,6 +136,7 @@ export const dataWorkSubItems: DataWorkSubItem[] = [
     },
     examplesCheckbox: 'Есть примеры реальных данных',
     docsCheckbox: 'Есть документация',
+    processCheckbox: 'Нужна предобработка данных',
   },
   {
     id: 'dataAfter',
@@ -145,6 +147,7 @@ export const dataWorkSubItems: DataWorkSubItem[] = [
         { id: 'callsTable', label: 'Таблица звонков' },
       ],
     },
+    processCheckbox: 'Нужна постобработка данных',
   },
 ];
 
@@ -357,6 +360,31 @@ export const sections: Section[] = [
           { id: 'filters', label: 'Фильтры' },
           { id: 'customColumns', label: 'Кастомные столбцы' },
         ],
+      },
+    ],
+  },
+  {
+    id: 'docs',
+    number: 9,
+    title: 'Документация',
+    fields: [
+      {
+        id: 'docsConfluence',
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Документация в конфе заведена',
+      },
+      {
+        id: 'docsClientMaterials',
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Материалы от клиента перемещены в документацию',
+      },
+      {
+        id: 'docsMeetingRecording',
+        label: '',
+        type: 'checkbox',
+        checkboxLabel: 'Запись встречи с клиентом',
       },
     ],
   },
